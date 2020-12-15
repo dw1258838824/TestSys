@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org" >
+<head>
+    <th:block th:include="include :: header('修改学员考试')" />
+</head>
+<body class="white-bg">
+    <div class="wrapper wrapper-content animated fadeInRight ibox-content">
+        <form class="form-horizontal m" id="form-examstudent-edit" th:object="${tRoomExamStudent}">
+            <input name="id" th:field="*{id}" type="hidden">
+            <div class="form-group">    
+                <label class="col-sm-3 control-label">学员答案json：</label>
+                <div class="col-sm-8">
+                    <input name="studentAnswerJson" th:field="*{studentAnswerJson}" class="form-control" type="text">
+                </div>
+            </div>
+            <div class="form-group">    
+                <label class="col-sm-3 control-label">考卷状态：</label>
+                <div class="col-sm-8">
+                    <select name="judgeState" class="form-control m-b" th:with="type=${@dict.getType('sys_judge_state')}">
+                        <option th:each="dict : ${type}" th:text="${dict.dictLabel}" th:value="${dict.dictValue}" th:field="*{judgeState}"></option>
+                    </select>
+                </div>
+            </div>
+        </form>
+    </div>
+    <th:block th:include="include :: footer" />
+    <script type="text/javascript">
+        var prefix = ctx + "system/examstudent";
+        $("#form-examstudent-edit").validate({
+            focusCleanup: true
+        });
+
+        function submitHandler() {
+            if ($.validate.form()) {
+                $.operate.save(prefix + "/edit", $('#form-examstudent-edit').serialize());
+            }
+        }
+    </script>
+</body>
+</html>

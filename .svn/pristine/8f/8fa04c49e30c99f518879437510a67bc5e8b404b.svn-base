@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org" xmlns:shiro="http://www.pollix.at/thymeleaf/shiro">
+<head>
+    <th:block th:include="include :: header('账单列表')" />
+</head>
+<body class="gray-bg">
+     <div class="container-div">
+        <div class="row">
+            <div class="col-sm-12 search-collapse">
+                <form id="formId">
+                    <div class="select-list">
+                        <ul>
+                            <li>
+                                <label>账单号：</label>
+                                <input type="text" name="billNo"/>
+                            </li>
+                            <li>
+                                <label>账单类型  1收入  2支出：</label>
+                                <select name="billType" th:with="type=${@dict.getType('')}">
+                                    <option value="">所有</option>
+                                    <option th:each="dict : ${type}" th:text="${dict.dictLabel}" th:value="${dict.dictValue}"></option>
+                                </select>
+                            </li>
+                            <li>
+                                <label>账单名称  1报名费 2补考费 3..：</label>
+                                <input type="text" name="billName"/>
+                            </li>
+                            <li>
+                                <label>账单备注：</label>
+                                <input type="text" name="billRemark"/>
+                            </li>
+                            <li>
+                                <label>支付人编号：</label>
+                                <input type="text" name="payUserId"/>
+                            </li>
+                            <li>
+                                <label>收款人编号：</label>
+                                <input type="text" name="takeUserId"/>
+                            </li>
+                            <li>
+                                <label>金额：</label>
+                                <input type="text" name="amount"/>
+                            </li>
+                            <li class="select-time">
+                                <label>交易时间：</label>
+                                <input type="text" class="time-input" id="startTime" placeholder="开始时间" name="params[beginPayTime]"/>
+                                <span>-</span>
+                                <input type="text" class="time-input" id="endTime" placeholder="结束时间" name="params[endPayTime]"/>
+                            </li>
+                            <li class="select-time">
+                                <label>创建时间：</label>
+                                <input type="text" class="time-input" id="startTime" placeholder="开始时间" name="params[beginCtime]"/>
+                                <span>-</span>
+                                <input type="text" class="time-input" id="endTime" placeholder="结束时间" name="params[endCtime]"/>
+                            </li>
+                            <li>
+                                <label>交易状态  0处理中 1成功 2异常：</label>
+                                <input type="text" name="payState"/>
+                            </li>
+                            <li>
+                                <label>关联编号：</label>
+                                <input type="text" name="refId"/>
+                            </li>
+                            <li>
+                                <a class="btn btn-primary btn-rounded btn-sm" onclick="$.table.search()"><i class="fa fa-search"></i>&nbsp;搜索</a>
+                                <a class="btn btn-warning btn-rounded btn-sm" onclick="$.form.reset()"><i class="fa fa-refresh"></i>&nbsp;重置</a>
+                            </li>
+                        </ul>
+                    </div>
+                </form>
+            </div>
+
+            <div class="btn-group-sm" id="toolbar" role="group">
+                <a class="btn btn-success" onclick="$.operate.add()" shiro:hasPermission="system:bill:add">
+                    <i class="fa fa-plus"></i> 添加
+                </a>
+                <a class="btn btn-primary single disabled" onclick="$.operate.edit()" shiro:hasPermission="system:bill:edit">
+                    <i class="fa fa-edit"></i> 修改
+                </a>
+                <a class="btn btn-danger multiple disabled" onclick="$.operate.removeAll()" shiro:hasPermission="system:bill:remove">
+                    <i class="fa fa-remove"></i> 删除
+                </a>
+                <a class="btn btn-warning" onclick="$.table.exportExcel()" shiro:hasPermission="system:bill:export">
+                    <i class="fa fa-download"></i> 导出
+                </a>
+            </div>
+            <div class="col-sm-12 select-table table-striped">
+                <table id="bootstrap-table"></table>
+            </div>
+        </div>
+    </div>
+    <th:block th:include="include :: footer" />
+    <script th:inline="javascript">
+        var editFlag = [[${@permission.hasPermi('system:bill:edit')}]];
+        var removeFlag = [[${@permission.hasPermi('system:bill:remove')}]];
+        var prefix = ctx + "system/bill";
+
+        $(function() {
+            var options = {
+                url: prefix + "/list",
+                createUrl: prefix + "/add",
+                updateUrl: prefix + "/edit/{id}",
+                removeUrl: prefix + "/remove",
+                exportUrl: prefix + "/export",
+                modalName: "账单",
+                columns: [{
+                    checkbox: true
+                },
+                {
+                    field: 'billId', 
+                    title: '账单序列',
+                    visible: false
+                },
+                {
+                    field: 'billNo', 
+                    title: '账单号'
+                },
+                {
+                    field: 'billType', 
+                    title: '账单类型  1收入  2支出'
+                },
+                {
+                    field: 'billName', 
+                    title: '账单名称  1报名费 2补考费 3..'
+                },
+                {
+                    field: 'billRemark', 
+                    title: '账单备注'
+                },
+                {
+                    field: 'payUserId', 
+                    title: '支付人编号'
+                },
+                {
+                    field: 'takeUserId', 
+                    title: '收款人编号'
+                },
+                {
+                    field: 'amount', 
+                    title: '金额'
+                },
+                {
+                    field: 'payTime', 
+                    title: '交易时间'
+                },
+                {
+                    field: 'ctime', 
+                    title: '创建时间'
+                },
+                {
+                    field: 'payState', 
+                    title: '交易状态  0处理中 1成功 2异常'
+                },
+                {
+                    field: 'refId', 
+                    title: '关联编号'
+                },
+                {
+                    title: '操作',
+                    align: 'center',
+                    formatter: function(value, row, index) {
+                        var actions = [];
+                        actions.push('<a class="btn btn-success btn-xs ' + editFlag + '" href="javascript:void(0)" onclick="$.operate.edit(\'' + row.billId + '\')"><i class="fa fa-edit"></i>编辑</a> ');
+                        actions.push('<a class="btn btn-danger btn-xs ' + removeFlag + '" href="javascript:void(0)" onclick="$.operate.remove(\'' + row.billId + '\')"><i class="fa fa-remove"></i>删除</a>');
+                        return actions.join('');
+                    }
+                }]
+            };
+            $.table.init(options);
+        });
+    </script>
+</body>
+</html>

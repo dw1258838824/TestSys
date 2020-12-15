@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org" >
+<head>
+    <th:block th:include="include :: header('新增题库')" />
+</head>
+<body class="white-bg">
+    <div class="wrapper wrapper-content animated fadeInRight ibox-content">
+        <form class="form-horizontal m" id="form-question-add"  autocomplete="off">
+            <div class="form-group">    
+                <label class="col-sm-3 control-label">题目类型：</label>
+                <div class="col-sm-8">
+                    <select name="questionTypeId" id="questionTypeId" class="form-control m-b" required >
+                    </select>
+                </div>
+            </div>
+            <div id="questionDiv" class="questionDiv">
+            	<div class="form-group">    
+	                <label class="col-sm-3 control-label is-required">题目标题：</label>
+	                <div class="col-sm-8">
+	                    <textarea name="questionTitle" id="questionTitle" class="form-control" required onblur="replaceStrs(this)" onkeyup="replaceStrs(this)" ></textarea>
+	            		<a onclick="$(this).next().click()" id="btnTitle"><i class="fa fa-file-image-o"></i> 选择图片</a>
+		                <input type="file" id="titleFile" accept="image/*"  class="hide" onchange="chooseImg(this,'titleFileBase64','btnTitle')">
+		                <input type="hidden" id="titleFileBase64" name="titleFileBase64" />
+	                </div>
+	            </div>
+            	<div class="form-group">    
+	                <label class="col-sm-3 control-label ">题目选项：</label>
+	                <div class="col-sm-8">
+	                    <div class="radio">
+                             <label>
+                             	<input type="radio" value="A" id="optionsRadios1" name="optionsRadios">
+                             	<input class="radioCode" id="radioA" value="A"   readOnly/>
+                             </label>
+                             <input class="radioCentext" id="radioTextA" value=""  onblur="replaceStrs(this)" onkeyup="replaceStrs(this)" />
+                             <br/><a onclick="$(this).next().click()" id="btnA"><i class="fa fa-file-image-o"></i> 选择图片</a>
+			                 <input type="file" id="optionFileA" accept="image/*" class="hide" onchange="chooseImg(this,'optionFileBase64A','btnA')">
+			                 <input class="optionImgBase64" type="hidden" id="optionFileBase64A" name="optionFileBase64A" />
+                        </div>
+	                    <div class="radio">
+                             <label>
+                             	<input type="radio" value="B" id="optionsRadios2" name="optionsRadios">
+                             	<input class="radioCode" id="radioB" value="B"   readOnly/>
+                             </label>
+                             <input class="radioCentext" id="radioTextB" value=""  onblur="replaceStrs(this)" onkeyup="replaceStrs(this)" />
+                             <br/><a onclick="$(this).next().click()" id="btnB"><i class="fa fa-file-image-o"></i> 选择图片</a>
+			                 <input type="file" id="optionFileB" accept="image/*" class="hide" onchange="chooseImg(this,'optionFileBase64B','btnB')">
+			                 <input class="optionImgBase64" type="hidden" id="optionFileBase64B" name="optionFileBase64B" />
+                        </div>
+	                    <div class="radio">
+                             <label>
+                             	<input type="radio" value="C" id="optionsRadios3" name="optionsRadios">
+                             	<input class="radioCode" id="radioC" value="C"   readOnly/>
+                             </label>
+                           	 <input class="radioCentext" id="radioTextC" value=""  onblur="replaceStrs(this)" onkeyup="replaceStrs(this)" />
+                             <br/><a onclick="$(this).next().click()" id="btnC"><i class="fa fa-file-image-o"></i> 选择图片</a>
+			                 <input type="file" id="optionFileC" accept="image/*" class="hide" onchange="chooseImg(this,'optionFileBase64C','btnC')">
+			                 <input class="optionImgBase64" type="hidden" id="optionFileBase64C" name="optionFileBase64C" />
+                        </div>
+	                    <div class="radio">
+                             <label>
+                             	<input type="radio" value="D" id="optionsRadios4" name="optionsRadios">
+                             	<input class="radioCode" id="radioD" value="D"   readOnly/>
+                             </label>
+                             <input class="radioCentext" id="radioTextD" value=""  onblur="replaceStrs(this)" onkeyup="replaceStrs(this)"/>
+                             <br/><a onclick="$(this).next().click()" id="btnD"><i class="fa fa-file-image-o"></i> 选择图片</a>
+			                 <input type="file" id="optionFileD" accept="image/*" class="hide" onchange="chooseImg(this,'optionFileBase64D','btnD')">
+			                 <input class="optionImgBase64" type="hidden" id="optionFileBase64D" name="optionFileBase64D" />
+                        </div>
+                        <a onclick="delOption(this)"><i class="fa fa-minus-square"></i></a>
+	                    <a onclick="addOption(this)"><i class="fa fa-plus-square"></i></a>
+	                </div>
+	            </div>
+	            <script>
+	            	function delOption(ele){
+	            		if($(".radioCode").length >2 ){
+		            		$(ele).prev().remove();
+	            		}
+	            	}
+	            	function addOption(ele){
+	            		var optionCount = $(".radioCode").length;
+	            		var next = getNextLetter($($(".radioCode")[optionCount-1]).val());
+	            		var htmlStr = 
+		            			"<div class=\"radio\"> "+
+		                        "	<label> "+
+			                    "		<input type=\"radio\" value=\""+next[1]+"\" id=\"optionsRadios"+next[0]+"\" name=\"optionsRadios\"> "+
+			                    "		<input class=\"radioCode\" id=\"radio"+next[1]+"\" value=\""+next[1]+"\"   readOnly/> "+
+			                    "	</label> "+
+			                    "	<input class=\"radioCentext\" id=\"radioText"+next[1]+"\" value=\"\"  required onblur=\"replaceStrs(this)\" onkeyup=\"replaceStrs(this)\" /> "+
+			                    "	<br/><a onclick=\"$(this).next().click()\" id=\"btn"+next[1]+"\"><i class=\"fa fa-file-image-o\"></i> 选择图片</a> "+
+			                    "	<input type=\"file\" id=\"optionFile"+next[1]+"\" accept=\"image/*\" class=\"hide\" onchange=\"chooseImg(this,'optionFileBase64"+next[1]+"','btn"+next[1]+"')\"> "+
+			                    "	<input class=\"optionImgBase64\" type=\"hidden\" id=\"optionFileBase64"+next[1]+"\" name=\"optionFileBase64"+next[1]+"\" /> "+
+			                    "</div> ";
+	            		$(ele).prev().prev().after(htmlStr);
+	            	}
+	            </script>
+            </div>
+            <div class="form-group hide">    
+                <label class="col-sm-3 control-label">题目内容：</label>
+                <div class="col-sm-8">
+                    <textarea name="questionHtml" id="questionHtml" class="form-control"></textarea>
+                </div>
+            </div>
+            <div class="form-group">    
+                <label class="col-sm-3 control-label">题目答案：</label>
+                <div class="col-sm-8">
+                    <textarea name="questionAnswer" id="questionAnswer" class="form-control"  onblur="replaceStrs(this)" onkeyup="replaceStrs(this)"></textarea>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-3 control-label">答案解析：</label>
+                <div class="col-sm-8">
+                    <textarea name="questionAnswerAnalysis" id="questionAnswerAnalysis" class="form-control" onblur="replaceStrs(this)" onkeyup="replaceStrs(this)"></textarea>
+                </div>
+            </div>
+            <div class="form-group">    
+                <label class="col-sm-3 control-label is-required">等级：</label>
+                <div class="col-sm-8">
+                    <select name="levelId" class="form-control m-b" required>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group">    
+                <label class="col-sm-3 control-label">科目：</label>
+                <div class="col-sm-8">
+                    <select name="subjectId" class="form-control m-b">
+                        <option value="">无</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group">    
+                <label class="col-sm-3 control-label">知识点：</label>
+                <div class="col-sm-8">
+	                <input id="treeId" name="questionPointId" type="hidden" />
+	                <input class="form-control" type="text" onclick="selectPointTree()" id="treeName" readonly="true" >
+                </div>
+            </div>
+        </form>
+    </div>
+    <th:block th:include="include :: footer" />
+    <script type="text/javascript">
+        var prefix = ctx + "system/question"
+        $("#form-question-add").validate({
+            focusCleanup: true
+        });
+        function submitHandler() {
+            if ($.validate.form()) {
+            	getHtml();
+                $.operate.save(prefix + "/add", $('#form-question-add').serialize());
+            }
+        }
+        function getHtml(){//获取题目内容
+        	var questionTitle = $("#questionTitle").val();
+        	var options = '<question><questionTitle>'+questionTitle+'</questionTitle>';
+        		options += '<titleFileBase64>'+$("#titleFileBase64").val()+'</titleFileBase64>';
+        	var idx = 0;
+        	if(($("#questionTypeId").val() == 1 || $("#questionTypeId").val() == 3) && $(".radioCode").length > 0){//单选题、判断题
+            	options += "<questionRadio>";
+            	$(".radioCode").each(function(){
+            		var optionCode = $(this).val();
+            		var optionCentext = $($(".radioCentext")[idx]).val();
+            		var optionImgBase64 = $($(".optionImgBase64")[idx]).val();
+            		options += "<options><code>"+optionCode+"</code><context>"+optionCentext+"</context><optionimg>"+optionImgBase64+"</optionimg></options>";
+            		idx ++;
+            	});
+            	options += "</questionRadio>";
+        	}else if($("#questionTypeId").val() == 2 && $(".boxCode").length > 0){//多选题
+        		options += "<questionCheckBox>";
+            	$(".boxCode").each(function(){
+            		var optionCode = $(this).val();
+            		var optionCentext = $($(".boxCentext")[idx]).val();
+            		var optionImgBase64 = $($(".optionImgBase64")[idx]).val();
+            		options += "<options><code>"+optionCode+"</code><context>"+optionCentext+"</context><optionimg>"+optionImgBase64+"</optionimg></options>";
+            		idx ++;
+            	});
+            	options += "</questionCheckBox>";
+        	}else if($("#questionTypeId").val() == 6 && $("#questionFile")){
+        		options += "<questionFile>"+$("#questionFile").val()+"</questionFile>";
+        	}
+        	options += "<answer>"+$("#questionAnswer").val()+"</answer><answerAnalysis>"+$("#questionAnswerAnalysis").val()+"</answerAnalysis><score>@score@</score></question>";
+        	$("#questionHtml").val(options);
+        }
+        
+        $(function(){
+        	initTypeList("questionTypeId","");
+        	initLevelList("levelId","");
+        	initSubjectList("subjectId","");
+            $("select[name='questionTypeId']").change(function(){
+            	$("#questionHtml").val("");
+            	var index = parseInt($(this).find("option:selected").attr("lang"));
+            	if(index>=0){
+            		$("#questionDiv").html(typeHtmlList[index]);
+            	}else{
+            		$("#questionDiv").html("");
+            	}
+            });
+            
+        })
+    </script>
+</body>
+</html>

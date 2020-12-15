@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org" xmlns:shiro="http://www.pollix.at/thymeleaf/shiro">
+<head>
+    <th:block th:include="include :: header('在线笔试')" />
+</head>
+<body class="gray-bg">
+     
+     <div id="serverDiv" style="display:none">
+     	<p>当前服务器时间：<font id="serverTime"></font></p>
+     </div>
+     
+     <div class="start_countdown">
+     	<p>距&nbsp;离&nbsp;考&nbsp;试&nbsp;开&nbsp;始&nbsp;还&nbsp;有</p>
+     	<p id="start_time"></p>
+     </div>
+     
+     <div class="container-div" id="bsDiv">
+        <div class="row">
+            <div class="exam-show-list">
+                <div id="showExam" class="exam exam-list"></div>
+                <div class="exam exam-info">
+                	<div class="countdown bsend">
+                		<p>距&nbsp;离&nbsp;笔&nbsp;试&nbsp;结&nbsp;束&nbsp;还&nbsp;有</p>
+                		<p id="time"></p>
+	                	<center>
+	                	<button id="saveBtn" type="button" class="btn btn-primary">保存笔试</button>
+	                	<button id="submitBtn" type="button" class="btn btn-primary" disabled>提交笔试</button>
+	                	<button id="clearBtn" type="button" class="btn btn-primary hide">清 除</button>
+	                	</center>
+                	</div>
+                	
+                </div>
+            </div>
+        </div>
+    </div>
+	
+    <th:block th:include="include :: footer" />
+    <script th:inline="javascript">
+    	var prefix = ctx + "student/exam";
+    	var facePrefix = ctx + "student/faceauth";
+    	var judgeState = [[${judgeState}]];
+    	var examId = [[${examId}]];
+		var studentId = [[${studentId}]];
+		var fdata = window.localStorage.getItem('exam_student_form_'+studentId+"_"+examId);
+    	var dataInfo;
+    	var mm = 00;
+    	var ss = 00;
+    	var sBegintime = "";
+    	var sEndtime = "";
+
+		var curDate = new Date();
+		var curDateStr = "";
+    	$(function() {
+    		$("#bsDiv").hide();
+    		$(".start_countdown").hide();
+    		if(judgeState != ""){
+    			if(judgeState=="0" || judgeState=="1" ){
+    				$.modal.confirm("您已经参与过笔试了,前往实操阶段",function(){
+						location.href = prefix + "/start/" + examId + "/operateexam";
+        			});
+    			}else if(judgeState=="2"){
+    				$.modal.confirm("您已经参与过笔试和实操了,前往答辩阶段",function(){
+						location.href = prefix + "/start/" + examId + "/argueexam";
+        			});
+    			}else{
+    				$.modal.confirm("您已经完成考试",function(){
+						closeWindow();
+        			});
+    			}
+    		}else{
+    			list();
+    		}
+    		
+    		$("#submitBtn").click(function(){
+    			$.modal.confirm("确定要交卷吗？",function(){
+    				$("#submitBtn").attr("disabled",true);
+    				submitExam();
+    			});
+    			
+    		});
+    		$("#saveBtn").click(function(){
+    			var data = $("#examForm").serializeArray();
+   			 	window.localStorage.setItem('exam_student_form_'+studentId+"_"+examId, JSON.stringify(data));
+   				$.modal.msg("已保存");
+   				$("#submitBtn").attr("disabled",false);
+    		});
+    		
+    		$("#clearBtn").click(function(){
+   			 	window.localStorage.removeItem('exam_student_form_'+studentId+"_"+examId);
+    		});
+    	});
+    	//交卷
+    	function submitExam(){
+    		$("#submitBtn").attr("disabled",true);
+    		$("input[name^='questionVals']").each(function(){
+				var name = $(this).attr("name");
+				var number = name.replace('questionVals','').split('no')[0];
+				var val = $("#questionVal"+number).val();
+				var fgf = "";
+				if($("#questionVal"+number).val()!=''){
+					fgf = "###";
+				}
+				$("#questionVal"+number).val($("#questionVal"+number).val()+fgf+$(this).val());
+			});
+
+    		$("input[name^='questionChecks']:checked").each(function(){
+				var name = $(this).attr("name");
+				var number = name.replace('questionChecks','').split('no')[0];
+				var val = $("#questionVal"+number).val();
+				var fgf = "";
+				if($("#questionVal"+number).val()!=''){
+					fgf = ",";
+				}
+				$("#questionVal"+number).val($("#questionVal"+number).val()+fgf+$(this).val());
+			});
+    		
+			sEndtime = curDate.getFullYear() + "-"
+			+ addZero(curDate.getMonth() + 1) + "-"
+			+ addZero(curDate.getDate()) + " " 
+			+ addZero(curDate.getHours()) + ":"
+			+ addZero(curDate.getMinutes()) + ":"
+			+ addZero(curDate.getSeconds());
+			var examForm = document.getElementById("examForm");
+			var formData = new FormData(examForm);
+			formData.append("studentId",studentId);
+			formData.append("examId",examId);
+			formData.append("sBegintime",sBegintime);
+			formData.append("sEndtime",sEndtime);
+			formData.append("paperId",dataInfo.paperId);
+			//var parms = $.param({
+	    	//			    "studentId" : studentId,
+	    	//			    "examId" : examId,
+	    	//			    "beginTime" : sBegintime,
+	    	//			    "endTime" : sEndtime,
+	    	//			    "paperId" : dataInfo.paperId
+	    	//			}) + "&" +$('#examForm').serialize();
+			//$.operate.save("../submitexam", parms);
+			/* $.post("../../submitexam",parms,function(result){
+				if(result=="success"){
+					$("#submitBtn").remove();
+					$("#saveBtn").remove();
+					$.modal.confirm("交卷成功,前往实操阶段",function(){
+						location.href = prefix + "/start/" + examId + "/operateexam";
+					});
+				}else{
+					$.modal.alert("提交失败，请重试");
+					$("#submitBtn").attr("disabled",false);
+				}
+			}); */
+			$.ajax({
+			    url: "../../submitexam",
+			    type: 'POST',
+			    data: formData,                    // 上传formdata封装的数据
+			    dataType: 'text',
+			    cache: false,                      // 不缓存
+			    processData: false,                // jQuery不要去处理发送的数据
+			    contentType: false,                // jQuery不要去设置Content-Type请求头
+			    success:function (data) {           //成功回调
+			        console.log(data);
+			    	if(data=="success"){
+				        $("#submitBtn").remove();
+						$("#saveBtn").remove();
+						$.modal.confirm("交卷成功,前往实操阶段",function(){
+							location.href = prefix + "/start/" + examId + "/operateexam";
+						});
+					}else{
+						$.modal.alert("提交失败，请重试");
+						$("#submitBtn").attr("disabled",false);
+					}
+			    },
+		        error:function(response){
+		            $.modal.alert("提交失败，请重试");
+					$("#submitBtn").attr("disabled",false);
+		        }
+			});
+    	}
+    	
+    	/* 查询考题 */
+    	function list(){
+    		$.get(prefix + "/get/" + examId,function(data,status,xhr){
+    			dataInfo = data;
+    			var time = xhr.getResponseHeader("Date");
+    			curDate = new Date(time);
+    			setInterval(function(){
+    				curDate.setSeconds(curDate.getSeconds()+1);
+    				$("#serverTime").html(curDate.getFullYear() + "-"
+    	    				+ addZero(curDate.getMonth() + 1) + "-"
+    	    				+ addZero(curDate.getDate()) + " " 
+    	    				+ addZero(curDate.getHours()) + ":"
+    	    				+ addZero(curDate.getMinutes()) + ":"
+    	    				+ addZero(curDate.getSeconds()));
+    			},1000);
+    			$("#serverDiv").show();
+            	var beginMinute = dateCompared(curDate,new Date(data.beginTime));//离笔试开始时间
+            	var beginSs = dateComparedSecond(curDate,new Date(data.beginTime));
+            	
+            	var endMinute = dateCompared(curDate,new Date(data.endTime));//离笔试结束时间
+            	var endSs = dateComparedSecond(curDate,new Date(data.endTime));
+            	if(beginMinute >0 || beginSs >0){//如果笔试还未开始
+            		mm = beginMinute;
+            		ss = beginSs;
+            		$(".start_countdown").show();
+            		startCountdown(endMinute,endSs);
+            	}else if(endMinute > 0 || endSs > 0){//笔试中 
+            		bsBeginFun(endMinute,endSs);
+            	}else if(endMinute <= 0){//笔试结束
+            		$("#bsDiv").hide();
+            	}
+            	
+          	});
+    	}
+    	
+    	
+    	/* 结束笔试倒计时 */
+    	function endCountdown(){
+    		if(mm <= 0 && ss == 0){
+    			submitExam();
+    			return;
+    		}
+    		if(ss <= 0){
+    			mm--;
+    			ss = 59;
+    		}else{
+    			ss--;
+    		}
+    		$("#time").text((mm <= 9 ? "0" + mm : + mm) + " 分 " + (ss <= 9 ? "0" + ss : + ss) + " 秒");
+    		setTimeout(function() { 
+    			endCountdown();
+    		},1000);
+    		
+    	}
+    	
+    	/* 开始考试倒计时  bs笔试  op */
+    	function startCountdown(eMinute,eSs){
+    		//如果开始倒计时结束，便展示考题并计算结束 倒计时
+    		if(mm <= 0 && ss == 0){
+        		bsBeginFun(eMinute,eSs);
+    			return;
+    		}
+    		if(ss <= 0){
+    			mm--;
+    			ss = 59;
+    		}else{
+    			ss--;
+    		}
+    		$("#start_time").text((mm <= 9 ? "0" + mm : + mm) + " 分 " + (ss <= 9 ? "0" + ss : + ss) + " 秒");
+    		setTimeout(function() { 
+    			startCountdown(eMinute,eSs);
+    		},1000);
+    	}
+    	
+    	//笔试开始时执行
+    	function bsBeginFun(endMinute,endSs){
+    		sBegintime = curDate.getFullYear() + "-"
+			+ addZero(curDate.getMonth() + 1) + "-"
+			+ addZero(curDate.getDate()) + " " 
+			+ addZero(curDate.getHours()) + ":"
+			+ addZero(curDate.getMinutes()) + ":"
+			+ addZero(curDate.getSeconds());
+    		//如果已经开始考试展示考题
+    		var html = returnAllHtml(dataInfo.params.paperDoc,fdata,"1");
+    		$("#bsDiv").show();
+    		$(".start_countdown").hide();
+        	$("#showExam").html(html);
+    		mm = endMinute;
+    		ss = endSs;
+    		//结束倒计时
+    		endCountdown();
+    	}
+    </script>
+</body>
+
+<style>
+	.exam-show-list {
+    	width: 100%;
+	    background: #fff;
+	    border-radius: 6px;
+	    margin-top: 10px;
+	    margin-bottom: 10px;
+	    padding-top: 5px;
+	    padding-bottom: 13px;
+	    padding-left: 100px;
+	    box-shadow: 1px 1px 3px rgba(0,0,0,.2);
+	    overflow: auto;
+	}
+	
+	.exam{
+		float: left;
+	}
+	
+	.form-control-static {
+	    font-size: 18px;
+	    font-weight: 600;
+	}
+	
+	.form-group .radio{
+		font-size: 15px;
+		margin-bottom: 15px;
+	}
+	
+	.exam-list{
+		width: 60%;
+	}
+	
+	.exam-info{
+		width:30%;
+		position: fixed;
+		right: 20px;
+	}
+	
+	.exam-info button{
+		width:48%;
+		margin-top:50px;
+	}
+	
+	.exam-info .countdown{
+		padding: 15px 0px;
+		border-radius: 6px;
+		box-shadow: 1px 1px 3px rgba(0,0,0,.2);
+	}
+	
+	.exam-info .countdown p{
+		font-size:15px;
+		font-weight: 600;
+		text-align: center;
+	}
+
+	.confirm{
+		margin-top: 20px;
+		text-align: center;
+	}
+	
+	.start_countdown{
+		text-align: center;
+	    margin-top: 200px;
+	    background: #07c160;
+	    color: white;
+	    width: 30%;
+    	margin-left: 35%;
+    	border-radius: 15px;
+    	font-size: 34px;
+    	font-weight: 600;
+    	padding: 25px 0px;
+	}
+</style>
+
+</html>

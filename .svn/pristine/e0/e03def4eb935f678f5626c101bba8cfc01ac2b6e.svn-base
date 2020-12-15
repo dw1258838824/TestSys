@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org" xmlns:shiro="http://www.pollix.at/thymeleaf/shiro">
+<head>
+    <th:block th:include="include :: header('报名管理列表')" />
+</head>
+<body class="gray-bg">
+     <div class="container-div">
+        <div class="row">
+            <div class="col-sm-12 search-collapse">
+                <form id="formId">
+                    <div class="select-list">
+                        <ul>
+                            <li>
+                                <label>准考状态：</label>
+                                <select name="state" th:with="type=${@dict.getType('sys_register_state')}">
+                                    <option value="">所有</option>
+                                    <option th:each="dict : ${type}" th:text="${dict.dictLabel}" th:value="${dict.dictValue}"></option>
+                                </select>
+                            </li>
+                            <li>
+                                <label>准考证号：</label>
+                                <input type="text" name="examCode"/>
+                            </li>
+                            <li class="select-time">
+                                <label>报名时间：</label>
+                                <input type="text" class="time-input" id="startTime" placeholder="开始时间" name="params[beginCtime]"/>
+                                <span>-</span>
+                                <input type="text" class="time-input" id="endTime" placeholder="结束时间" name="params[endCtime]"/>
+                            </li>
+                            <li>
+                                <a class="btn btn-primary btn-rounded btn-sm" onclick="$.table.search()"><i class="fa fa-search"></i>&nbsp;搜索</a>
+                                <a class="btn btn-warning btn-rounded btn-sm" onclick="$.form.reset()"><i class="fa fa-refresh"></i>&nbsp;重置</a>
+                            </li>
+                        </ul>
+                    </div>
+                </form>
+            </div>
+            <div class="col-sm-12 select-table table-striped">
+                <table id="bootstrap-table"></table>
+            </div>
+        </div>
+        
+        <div class="video_canvas">
+			<video id="video" width="500" height="500" autoplay muted></video>
+			<canvas id="canvas" width="500" height="500" hidden></canvas>
+			<div class="confirm">
+				<a id="snap" class="btn btn-primary btn-rounded .btn-lg"  style="display:none"><i class="fa fa-camera"></i>&nbsp;&nbsp;&nbsp;点&nbsp;击&nbsp;验&nbsp;证</a>
+			</div>
+		</div>
+		
+		
+	    <div class="video_canvas">
+			<div class="confirm">
+				
+			</div>
+		</div>
+    </div>
+    <th:block th:include="include :: footer" />
+    <script th:inline="javascript">
+        var stateDatas = [[${@dict.getType('sys_register_state')}]];
+        var prefix = ctx + "student/register";
+        var facePrefix = ctx + "student/faceauth";
+        
+        $(function() {
+    		$(".row").hide();
+    		//开启摄像头
+    		if (navigator.mediaDevices.getUserMedia || navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia) {
+    			getUserMedia({video:{width:500,height:500}},success,error)
+    		}else {
+    			$.modal.alertError("您的设备不支持");
+    		}
+    		
+    		$("#snap").click(function(){
+    			faceSign();
+    		});
+    		
+        });
+        function faceSign(){
+        	let video = document.getElementById('video');
+    		let canvas = document.getElementById('canvas');
+    		let context = canvas.getContext('2d');
+        	$.modal.loading("正在校验，请稍后...");
+			//暂停video
+			video.pause();
+			context.drawImage(video,0,0,500,500);
+			var imgData = canvas.toDataURL();
+			var photo = imgData.substr(22);
+			$.post(facePrefix + "/get",{faceImg:photo},function(data,status,xhr){
+				$.modal.closeLoading();
+				if(data.code == 0){
+					//获取摄像头并关闭摄像头占用
+	    			var track = video.srcObject.getTracks()[0];
+	    			track.stop();
+    				$(".video_canvas").hide();
+    				$(".row").show();
+    				init();
+				}else{
+					$.modal.alertError("人脸校验失败");
+					video.play();
+				}
+			});
+        }
+        function init(){
+            var options = {
+                url: prefix + "/list",
+                modalName: "报名管理",
+                columns: [
+                {
+                    field: 'params.examTitle', 
+                    title: '试卷名称'
+                },
+                {
+                    field: 'examCode', 
+                    title: '准考证号'
+                },
+                {
+                    field: 'state', 
+                    title: '准考状态',
+                    formatter: function(value, row, index) {
+                       return $.table.selectDictLabel(stateDatas, value);
+                    }
+                },
+                {
+                    field: 'params.beginTime', 
+                    title: '考试开始时间'
+                },
+                {
+                    field: 'params.endTime', 
+                    title: '考试结束时间'
+                },
+                {
+                    field: 'ctime', 
+                    title: '报名时间'
+                },
+                {
+                    title: '操作',
+                    align: 'center',
+                    formatter: function(value, row, index) {
+                        var actions = [];
+                        actions.push('<button class="btn btn-success btn-xs" onclick="start(\'' + row.examId + '\',\'startexam\')"><i class="fa fa-edit"></i>笔试</button> ');
+                        actions.push('<button class="btn btn-success btn-xs" onclick="start(\'' + row.examId + '\',\'operateexam\')"><i class="fa fa-edit"></i>实操</button> ');
+                        actions.push('<button class="btn btn-success btn-xs" onclick="start(\'' + row.examId + '\',\'argueexam\')"><i class="fa fa-edit"></i>答辩</button> ');
+                        return actions.join('');
+                    }
+                }]
+            };
+            $.table.init(options);
+		}
+        
+        function start(examId,innerpath){
+        	window.open("exam/start/" + examId + "/" + innerpath);
+        }
+        
+      //成功回调
+		function success(stream){
+			video.srcObject = stream;
+			video.play();
+			setTimeout(function(){$("#snap").show();},1000);
+		}
+		//失败回调
+		function error(error) {
+			$.modal.alertError("失败：请确保您的相机没有被其他应用程序使用（Chrome，即任何其他浏览器）");
+		}
+    	//用来匹配不同的浏览器
+		function getUserMedia(constraints,success,error){
+			if(navigator.mediaDevices.getUserMedia){
+				navigator.mediaDevices.getUserMedia(constraints).then(success).catch(error);
+			}else if (navigator.webkitGetUserMedia) {
+				navigator.webkitGetUserMedia(constraints,success,error);
+			}else if (navigator.mozGetUserMedia) {
+				navigator.mozGetUserMedia(constraints,success,error);
+			}else if (navigator.getUserMedia) {
+				navigator.getUserMedia(constraints,success,error)
+			}
+		}
+    </script>
+    <style>
+    		
+	.video_canvas{
+		text-align: center;
+    	margin-top: 50px;
+	}
+	
+	video,canvas,.video{
+		width: 25% !important;
+		border-radius: 200px;
+	}
+	
+    </style>
+</body>
+</html>

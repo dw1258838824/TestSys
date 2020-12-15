@@ -1,0 +1,95 @@
+package com.testsys.common;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.RestTemplate;
+
+import com.testsys.wxpay.WXPay;
+import com.testsys.wxpay.WXPayConfig;
+import com.testsys.wxpay.WXPayUtil;
+
+/**
+ * 微信支付
+ * 
+ * @author TestSys
+ *
+ */
+public class UnionPayOfWXPay {
+	// 统一下单URL
+	static final String UNIFIEDORDER_URL = "https://api.mch.weixin.qq.com/pay/unifiedorder";
+	// URL后缀
+	static final String URL_SUFFIX = "/pay/unifiedorder";
+	// API_KEY
+	static final String API_KEY = "shaoerzhinengshuipingkaoshi12345";
+	// 公众号id
+	static final String APP_ID = "wx0287d79648e296bd";
+	// 商户号
+	static final String MCH_ID = "1508704291";
+	// 回调通知地址
+	static final String NOTIFY_URL = "";
+
+	@Autowired
+	RestTemplate restTemplate;
+
+	/**
+	 * 统一下单
+	 * 
+	 * @param proInfor       商品描述
+	 * @param totalFee       商品标价
+	 * @param spbillCreateIp 终端IP地址
+	 * @return
+	 * @throws Exception
+	 */
+	public static Map<String, String> unifiedOrder(String proInfor, String totalFee, String spbillCreateIp) {
+		Map<String, String> repMap = new HashMap<String, String>();
+		try {
+			Map<String, String> configMap = new HashMap<String, String>();
+			configMap.put("appid", APP_ID); // 公众账号ID
+			configMap.put("mch_id", MCH_ID); // 商户号
+			configMap.put("device_info", "WEB"); // 设备号
+			configMap.put("nonce_str", WXPayUtil.generateNonceStr()); // 随机字符串
+			configMap.put("body", proInfor); // 商品描述
+			String outTradeNo = UUID.randomUUID().toString().replaceAll("-", "");
+			configMap.put("out_trade_no", outTradeNo); // 商户订单号
+			configMap.put("total_fee", totalFee); // 标价金额
+			configMap.put("spbill_create_ip", spbillCreateIp); // 终端IP
+			configMap.put("notify_url", NOTIFY_URL); // 通知地址
+			configMap.put("trade_type", "JSAPI"); // 交易类型，JSAPI -JSAPI支付、NATIVE -Native支付、APP -APP支付
+			String signMD5 = WXPayUtil.generateSignature(configMap, API_KEY);
+			configMap.put("sign", signMD5); // 签名
+			WXPayConfig wxPayConfig = new WXPayConfig();
+			WXPay wxPay = new WXPay(wxPayConfig);
+
+			Map<String, String> resultMap = wxPay.unifiedOrder(configMap);
+			if ("SUCCESS".equals(resultMap.get("return_code"))) {
+				if ("SUCCESS".equals(resultMap.get("result_code"))) {
+					// 创建订单成功，返回订单信息
+					repMap.put("result_code", "SUCCESS");
+					repMap.put("prepay_id", resultMap.get("prepay_id")) ;	//预支付交易会话ID
+					repMap.put("code_url", resultMap.get("code_url"));	//二维码链接
+				}else {
+					// 创建订单失败，返回失败原因
+					repMap.put("result_code", "FAIL");
+					repMap.put("return_msg", resultMap.get("err_code_des"));
+				}
+			}else {
+				// 请求失败，返回错误信息
+				repMap.put("result_code", "FAIL");
+				repMap.put("return_msg", resultMap.get("return_msg"));
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return repMap;
+	}
+
+}

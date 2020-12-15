@@ -1,0 +1,110 @@
+package com.ruoyi.project.system.api.controller;
+
+import com.alibaba.fastjson.JSON;
+import com.ruoyi.framework.configure.StudentSession;
+import com.ruoyi.project.system.api.entity.WeChatCallBack;
+import com.ruoyi.project.system.bill.domain.Bill;
+import com.ruoyi.project.system.bill.service.IBillService;
+import com.ruoyi.project.system.exam.domain.TExam;
+import com.ruoyi.project.system.exam.service.ITExamService;
+import com.ruoyi.project.system.register.domain.TExamRegister;
+import com.ruoyi.project.system.register.service.ITExamRegisterService;
+import com.testsys.common.UnionPayOfWXPay;
+import com.testsys.utils.ApiResult;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+import javax.servlet.http.HttpServletRequest;
+import java.util.Date;
+import java.util.Map;
+import java.util.UUID;
+
+@RestController
+@RequestMapping("/api/bill")
+public class BillApi {
+
+    @Autowired
+    private IBillService billService;
+    @Autowired
+    private ITExamService examService;
+    @Autowired
+    private ITExamRegisterService examRegisterService;
+
+    @Value("${wechat.notify_url}")
+    private String notifyUrl;
+
+    private String payIP = "47.93.241.224";
+
+    @GetMapping("/add")
+    public ApiResult add(Long examId, String payType, HttpServletRequest request){
+        StudentSession ss = StudentSession.getStudentSession(request);
+        if(null == ss && "JSAPI".equals(payType)){
+            return new ApiResult(500,"未登陆");
+        }
+        TExam exam = examService.selectTExamById(examId);
+        if(null != exam){
+            String billNo = UUID.randomUUID().toString().replaceAll("-","");
+            Bill bill = new Bill();
+            bill.setBillNo(billNo);//订单编号
+            bill.setBillType("2");//账单类型  1收入  2支出
+            bill.setBillName("1");//账单名称  1报名费 2补考费
+            bill.setPayUserId(new Long("5"));//支付人
+            bill.setAmount(exam.getPrice());//价格
+            bill.setPayState("0");//交易状态  0处理中 1成功 2异常
+            bill.setRefId(examId);//关联编号
+            int count = billService.insertBill(bill);
+            if(count > 0){
+                if("JSAPI ".equals(payType)){
+                    Map<String,String> wechatPay = UnionPayOfWXPay.unifiedOrder(
+                            "1",
+                            ss.getWechatId(),
+                            billNo,
+                            examId.toString(),
+                            exam.getParams().get("paperName").toString(),
+                            String.valueOf(Double.valueOf(exam.getPrice() * 100).intValue()),
+                            payIP,
+                            notifyUrl);
+                    return new ApiResult(wechatPay.get("prepay_id"));
+                }else if("NATIVE".equals(payType)){
+                    Map<String,String> wechatPay = UnionPayOfWXPay.unifiedOrder(
+                            "2",
+                            "",
+                            billNo,
+                            examId.toString(),
+                            exam.getParams().get("paperName").toString(),
+                            String.valueOf(Double.valueOf(exam.getPrice() * 100).intValue()),
+                            payIP,
+                            notifyUrl);
+                    return new ApiResult(wechatPay.get("code_url"));
+                }
+            }
+        }
+        return new ApiResult(500,"失败");
+    }
+
+    @GetMapping("/pay/callback")
+    public void callBack(WeChatCallBack wccb){
+        System.out.println(JSON.toJSON(wccb));
+        String state = "SUCCESS";
+        //返回支付成功
+        if(state.equals(wccb.getReturn_code())){
+            Bill bill = new Bill();
+            bill.setPayState("1");
+            bill.setPayNo(wccb.getTransaction_id());
+            bill.setBillNo(wccb.getOut_trade_no());
+            billService.updatePayStateByBillNo(bill);
+            Bill bl = billService.selectBillByBillNo(wccb.getOut_trade_no());
+            TExamRegister er = new TExamRegister();
+            er.setStudentId(bl.getPayUserId());
+            er.setExamId(bl.getRefId());
+            er.setState("1");
+            er.setExamCode(UUID.randomUUID().toString().replaceAll("-",""));
+            er.setCtime(new Date());
+            examRegisterService.insertTExamRegister(er);
+        }else{
+            //支付失败
+        }
+    }
+}

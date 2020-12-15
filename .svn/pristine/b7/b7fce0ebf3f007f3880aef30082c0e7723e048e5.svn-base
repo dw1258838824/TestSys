@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.project.system.studentchart.mapper.ViewDeptStudentMapper">
+    
+    <resultMap type="ViewDeptStudent" id="ViewDeptStudentResult">
+        <result property="deptId"    column="dept_id"    />
+        <result property="counts"    column="counts"    />
+    </resultMap>
+
+    <sql id="selectViewDeptStudentVo">
+        select dept_id, counts from view_dept_student
+    </sql>
+
+    <select id="selectViewDeptStudentList" parameterType="ViewDeptStudent" resultMap="ViewDeptStudentResult">
+        <include refid="selectViewDeptStudentVo"/>
+        <where>  
+            <if test="deptId != null "> and dept_id = #{deptId}</if>
+        </where>
+    </select>
+    
+    <select id="selectViewDeptStudentById" parameterType="Long" resultMap="ViewDeptStudentResult">
+        <include refid="selectViewDeptStudentVo"/>
+        where dept_id = #{deptId}
+    </select>
+        
+    <insert id="insertViewDeptStudent" parameterType="ViewDeptStudent">
+        insert into view_dept_student
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="deptId != null ">dept_id,</if>
+            <if test="counts != null ">counts,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="deptId != null ">#{deptId},</if>
+            <if test="counts != null ">#{counts},</if>
+         </trim>
+    </insert>
+
+    <update id="updateViewDeptStudent" parameterType="ViewDeptStudent">
+        update view_dept_student
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="counts != null ">counts = #{counts},</if>
+        </trim>
+        where dept_id = #{deptId}
+    </update>
+
+    <delete id="deleteViewDeptStudentById" parameterType="Long">
+        delete from view_dept_student where dept_id = #{deptId}
+    </delete>
+
+    <delete id="deleteViewDeptStudentByIds" parameterType="String">
+        delete from view_dept_student where dept_id in 
+        <foreach item="deptId" collection="array" open="(" separator="," close=")">
+            #{deptId}
+        </foreach>
+    </delete>
+    
+</mapper>

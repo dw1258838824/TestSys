@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org" xmlns:shiro="http://www.pollix.at/thymeleaf/shiro">
+<head>
+    <th:block th:include="include :: header('答辩')" />
+</head>
+<body class="gray-bg">
+     
+     <div id="serverDiv" style="display:none">
+     	<p>当前服务器时间：<font id="serverTime"></font></p>
+     </div>
+     
+     <div class="start_countdown">
+     	<p>距&nbsp;离&nbsp;答&nbsp;辩&nbsp;开&nbsp;始&nbsp;还&nbsp;有</p>
+     	<p id="start_time"></p>
+     </div>
+     
+     <div class="container-div" id="bsDiv">
+        <div class="row">
+            <div class="exam-show-list">
+                <div id="showExam" class="exam exam-list"></div>
+                <div class="exam exam-info">
+                	<div class="countdown bsend">
+                		<p>距&nbsp;离&nbsp;答&nbsp;辩&nbsp;结&nbsp;束&nbsp;还&nbsp;有</p>
+                		<p id="time"></p>
+	                	<center><button id="submitBtn" type="button" class="btn btn-primary" >完成答辩</button></center>
+                	</div>
+                </div>
+            </div>
+        </div>
+    </div>
+	
+    <th:block th:include="include :: footer" />
+    <script th:inline="javascript">
+    	var prefix = ctx + "student/exam";
+    	var facePrefix = ctx + "student/faceauth";
+    	var judgeState = [[${judgeState}]];
+    	var examId = [[${examId}]];
+		var studentId = [[${studentId}]];
+    	var id = [[${id}]];
+		var fdata = null;
+    	var dataInfo;
+    	var mm = 00;
+    	var ss = 00;
+    	var sBegintime = "";
+    	var sEndtime = "";
+
+		var curDate = new Date();
+		var curDateStr = "";
+    	$(function() {
+    		$(".exam-show-list").height($(document.body).height()-100);
+    		$("#bsDiv").hide();
+    		$(".start_countdown").hide();
+    		if(judgeState != ""){
+    			if(judgeState=="0" || judgeState=="1" ){
+    				$.modal.confirm("您还未完成实操阶段,前往实操阶段",function(){
+						location.href = prefix + "/start/" + examId + "/operateexam";
+        			});
+    			}else if(judgeState=="2"){
+    				list();
+    			}else{
+    				$.modal.confirm("您已经完成考试",function(){
+						closeWindow();
+        			});
+    			}
+    		}else{
+    			$.modal.confirm("您还没参加笔试,现在前往笔试",function(){
+					location.href = prefix + "/start/" + examId + "/startexam";
+    			});
+    		}
+    		
+    		$("#submitBtn").click(function(){
+    			$.modal.confirm("确定要完成答辩吗？",function(){
+    				$("#submitBtn").attr("disabled",true);
+    				submitExam();
+    			});
+    			
+    		});
+    	});
+    	//交卷
+    	function submitExam(){
+    		$("#submitBtn").attr("disabled",true);
+			sEndtime = curDate.getFullYear() + "-"
+			+ addZero(curDate.getMonth() + 1) + "-"
+			+ addZero(curDate.getDate()) + " " 
+			+ addZero(curDate.getHours()) + ":"
+			+ addZero(curDate.getMinutes()) + ":"
+			+ addZero(curDate.getSeconds());
+			var parms = $.param({
+	    				    "studentId" : studentId,
+	    				    "examId" : examId,
+	    				    "argueBeginTime" : sBegintime,
+	    				    "argueEndTime" : sEndtime,
+	    				    "paperId" : dataInfo.paperId,
+	    				    "id" : id
+	    				}) + "&" +$('#examForm').serialize();
+			//$.operate.save("../submitexam", parms);
+			$.post("../../submitflag/argue",parms,function(result){
+				if(result=="success"){
+					$("#submitBtn").remove();
+					$.modal.confirm("答辩已成功,考试结束",function(){
+						closeWindow();
+					});
+				}else{
+					$.modal.alert("提交失败，请重试");
+					$("#submitBtn").attr("disabled",false);
+				}
+			});
+    	}
+    	
+    	/* 查询考题 */
+    	function list(){
+    		$.get(prefix + "/get/" + examId,function(data,status,xhr){
+    			dataInfo = data;
+    			var time = xhr.getResponseHeader("Date");
+    			curDate = new Date(time);
+    			setInterval(function(){
+    				curDate.setSeconds(curDate.getSeconds()+1);
+    				$("#serverTime").html(curDate.getFullYear() + "-"
+    	    				+ addZero(curDate.getMonth() + 1) + "-"
+    	    				+ addZero(curDate.getDate()) + " " 
+    	    				+ addZero(curDate.getHours()) + ":"
+    	    				+ addZero(curDate.getMinutes()) + ":"
+    	    				+ addZero(curDate.getSeconds()));
+    			},1000);
+    			$("#serverDiv").show();
+            	var beginMinute = dateCompared(curDate,new Date(data.argueBeginTime));//离答辩开始时间
+            	var beginSs = dateComparedSecond(curDate,new Date(data.argueBeginTime));
+            	
+            	var endMinute = dateCompared(curDate,new Date(data.argueEndTime));//离答辩结束时间
+            	var endSs = dateComparedSecond(curDate,new Date(data.argueEndTime));
+            	if(beginMinute >0 || beginSs >0 ){//如果答辩还未开始
+            		mm = beginMinute;
+            		ss = beginSs;
+            		$(".start_countdown").show();
+            		startCountdown(endMinute,endSs);
+            	}else if(endMinute > 0 || endSs > 0){//答辩中 
+            		bsBeginFun(endMinute,endSs);
+            	}else if(endMinute <= 0){//答辩结束
+            		$("#bsDiv").hide();
+            	}
+            	
+          	});
+    	}
+    	
+    	
+    	/* 结束答辩倒计时 */
+    	function endCountdown(){
+    		if(mm <= 0 && ss == 0){
+    			submitExam();
+    			return;
+    		}
+    		if(ss <= 0){
+    			mm--;
+    			ss = 59;
+    		}else{
+    			ss--;
+    		}
+    		$("#time").text((mm <= 9 ? "0" + mm : + mm) + " 分 " + (ss <= 9 ? "0" + ss : + ss) + " 秒");
+    		setTimeout(function() { 
+    			endCountdown();
+    		},1000);
+    		
+    	}
+    	
+    	/* 开始考试倒计时  bs答辩  op */
+    	function startCountdown(eMinute,eSs){
+    		//如果开始倒计时结束，便展示考题并计算结束 倒计时
+    		if(mm <= 0 && ss == 0){
+        		bsBeginFun(eMinute,eSs);
+    			return;
+    		}
+    		if(ss <= 0){
+    			mm--;
+    			ss = 59;
+    		}else{
+    			ss--;
+    		}
+    		$("#start_time").text((mm <= 9 ? "0" + mm : + mm) + " 分 " + (ss <= 9 ? "0" + ss : + ss) + " 秒");
+    		setTimeout(function() { 
+    			startCountdown(eMinute,eSs);
+    		},1000);
+    	}
+    	
+    	//答辩开始时执行
+    	function bsBeginFun(endMinute,endSs){
+    		sBegintime = curDate.getFullYear() + "-"
+			+ addZero(curDate.getMonth() + 1) + "-"
+			+ addZero(curDate.getDate()) + " " 
+			+ addZero(curDate.getHours()) + ":"
+			+ addZero(curDate.getMinutes()) + ":"
+			+ addZero(curDate.getSeconds());
+    		//如果已经开始考试展示考题
+    		var html = returnAllHtml(dataInfo.params.paperDoc,fdata,"2");
+    		$("#bsDiv").show();
+    		$(".start_countdown").hide();
+        	$("#showExam").html(html);
+    		mm = endMinute;
+    		ss = endSs;
+    		//结束倒计时
+    		endCountdown();
+    		setTimeout(function(){
+	    		speekTitle();
+    		},2000);
+    	}
+    </script>
+</body>
+
+<style>
+	.exam-show-list {
+    	width: 100%;
+	    background: #fff;
+	    border-radius: 6px;
+	    margin-top: 0px;
+	    margin-bottom: 10px;
+	    padding-top: 5px;
+	    padding-bottom: 13px;
+	    padding-left: 100px;
+	    box-shadow: 1px 1px 3px rgba(0,0,0,.2);
+	    overflow: auto;
+	}
+	
+	.exam{
+		float: left;
+	}
+	
+	.form-control-static {
+	    font-size: 18px;
+	    font-weight: 600;
+	}
+	
+	.form-group .radio{
+		font-size: 15px;
+		margin-bottom: 15px;
+	}
+	
+	.exam-list{
+		width: 60%;
+	}
+	
+	.exam-info{
+		width:30%;
+		position: fixed;
+		right: 20px;
+	}
+	
+	.exam-info button{
+		width:48%;
+		margin-top:50px;
+	}
+	
+	.exam-info .countdown{
+		padding: 15px 0px;
+		border-radius: 6px;
+		box-shadow: 1px 1px 3px rgba(0,0,0,.2);
+	}
+	
+	.exam-info .countdown p{
+		font-size:15px;
+		font-weight: 600;
+		text-align: center;
+	}
+
+	.confirm{
+		margin-top: 20px;
+		text-align: center;
+	}
+	
+	.start_countdown{
+		text-align: center;
+	    margin-top: 200px;
+	    background: #07c160;
+	    color: white;
+	    width: 30%;
+    	margin-left: 35%;
+    	border-radius: 15px;
+    	font-size: 34px;
+    	font-weight: 600;
+    	padding: 25px 0px;
+	}
+</style>
+
+</html>

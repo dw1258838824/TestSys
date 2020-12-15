@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.project.system.people.mapper.BzPeopleMapper">
+    
+    <resultMap type="BzPeople" id="BzPeopleResult">
+        <result property="peopleId"    column="people_id"    />
+        <result property="realName"    column="real_name"    />
+        <result property="nickName"    column="nick_name"    />
+        <result property="birthday"    column="birthday"    />
+        <result property="sex"    column="sex"    />
+        <result property="homeAddress"    column="home_address"    />
+        <result property="nowAddress"    column="now_address"    />
+        <result property="mobile"    column="mobile"    />
+        <result property="wechat"    column="wechat"    />
+        <result property="qq"    column="qq"    />
+        <result property="email"    column="email"    />
+        <result property="otherLine"    column="other_line"    />
+        <result property="img"    column="img"    />
+        <result property="info"    column="info"    />
+        <result property="ctime"    column="ctime"    />
+        <result property="utime"    column="utime"    />
+    </resultMap>
+
+    <sql id="selectBzPeopleVo">
+        select people_id, real_name, nick_name, birthday, sex, home_address, now_address, mobile, wechat, qq, email, other_line, img, info, ctime, utime from bz_people
+    </sql>
+
+    <select id="selectBzPeopleList" parameterType="BzPeople" resultMap="BzPeopleResult">
+        <include refid="selectBzPeopleVo"/>
+        <where>  
+            <if test="realName != null  and realName != ''"> and real_name like concat('%', #{realName}, '%')</if>
+            <if test="nickName != null  and nickName != ''"> and nick_name like concat('%', #{nickName}, '%')</if>
+            <if test="birthday != null "> and birthday = #{birthday}</if>
+            <if test="sex != null  and sex != ''"> and sex = #{sex}</if>
+            <if test="homeAddress != null  and homeAddress != ''"> and home_address like concat('%', #{homeAddress}, '%')</if>
+            <if test="nowAddress != null  and nowAddress != ''"> and now_address like concat('%', #{nowAddress}, '%')</if>
+            <if test="mobile != null  and mobile != ''"> and mobile = #{mobile}</if>
+            <if test="wechat != null  and wechat != ''"> and wechat = #{wechat}</if>
+            <if test="ctime != null "> and ctime = #{ctime}</if>
+            <if test="utime != null "> and utime = #{utime}</if>
+        </where>
+    </select>
+    
+    <select id="selectBzPeopleById" parameterType="Long" resultMap="BzPeopleResult">
+        <include refid="selectBzPeopleVo"/>
+        where people_id = #{peopleId}
+    </select>
+        
+    <insert id="insertBzPeople" parameterType="BzPeople">
+        insert into bz_people
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="peopleId != null ">people_id,</if>
+            <if test="realName != null  and realName != ''">real_name,</if>
+            <if test="nickName != null  and nickName != ''">nick_name,</if>
+            <if test="birthday != null ">birthday,</if>
+            <if test="sex != null  and sex != ''">sex,</if>
+            <if test="homeAddress != null  and homeAddress != ''">home_address,</if>
+            <if test="nowAddress != null  and nowAddress != ''">now_address,</if>
+            <if test="mobile != null  and mobile != ''">mobile,</if>
+            <if test="wechat != null  and wechat != ''">wechat,</if>
+            <if test="qq != null  and qq != ''">qq,</if>
+            <if test="email != null  and email != ''">email,</if>
+            <if test="otherLine != null  and otherLine != ''">other_line,</if>
+            <if test="img != null  and img != ''">img,</if>
+            <if test="info != null  and info != ''">info,</if>
+            <if test="ctime != null ">ctime,</if>
+            <if test="utime != null ">utime,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="peopleId != null ">#{peopleId},</if>
+            <if test="realName != null  and realName != ''">#{realName},</if>
+            <if test="nickName != null  and nickName != ''">#{nickName},</if>
+            <if test="birthday != null ">#{birthday},</if>
+            <if test="sex != null  and sex != ''">#{sex},</if>
+            <if test="homeAddress != null  and homeAddress != ''">#{homeAddress},</if>
+            <if test="nowAddress != null  and nowAddress != ''">#{nowAddress},</if>
+            <if test="mobile != null  and mobile != ''">#{mobile},</if>
+            <if test="wechat != null  and wechat != ''">#{wechat},</if>
+            <if test="qq != null  and qq != ''">#{qq},</if>
+            <if test="email != null  and email != ''">#{email},</if>
+            <if test="otherLine != null  and otherLine != ''">#{otherLine},</if>
+            <if test="img != null  and img != ''">#{img},</if>
+            <if test="info != null  and info != ''">#{info},</if>
+            <if test="ctime != null ">#{ctime},</if>
+            <if test="utime != null ">#{utime},</if>
+         </trim>
+    </insert>
+
+    <update id="updateBzPeople" parameterType="BzPeople">
+        update bz_people
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="realName != null  and realName != ''">real_name = #{realName},</if>
+            <if test="nickName != null  and nickName != ''">nick_name = #{nickName},</if>
+            <if test="birthday != null ">birthday = #{birthday},</if>
+            <if test="sex != null  and sex != ''">sex = #{sex},</if>
+            <if test="homeAddress != null  and homeAddress != ''">home_address = #{homeAddress},</if>
+            <if test="nowAddress != null  and nowAddress != ''">now_address = #{nowAddress},</if>
+            <if test="mobile != null  and mobile != ''">mobile = #{mobile},</if>
+            <if test="wechat != null  and wechat != ''">wechat = #{wechat},</if>
+            <if test="qq != null  and qq != ''">qq = #{qq},</if>
+            <if test="email != null  and email != ''">email = #{email},</if>
+            <if test="otherLine != null  and otherLine != ''">other_line = #{otherLine},</if>
+            <if test="img != null  and img != ''">img = #{img},</if>
+            <if test="info != null  and info != ''">info = #{info},</if>
+            <if test="ctime != null ">ctime = #{ctime},</if>
+            <if test="utime != null ">utime = #{utime},</if>
+        </trim>
+        where people_id = #{peopleId}
+    </update>
+
+    <delete id="deleteBzPeopleById" parameterType="Long">
+        delete from bz_people where people_id = #{peopleId}
+    </delete>
+
+    <delete id="deleteBzPeopleByIds" parameterType="String">
+        delete from bz_people where people_id in 
+        <foreach item="peopleId" collection="array" open="(" separator="," close=")">
+            #{peopleId}
+        </foreach>
+    </delete>
+    
+</mapper>

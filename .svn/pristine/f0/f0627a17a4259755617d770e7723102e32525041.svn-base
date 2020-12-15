@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org" xmlns:shiro="http://www.pollix.at/thymeleaf/shiro">
+<head>
+    <th:block th:include="include :: header('考试统计列表')" />
+</head>
+<body class="gray-bg">
+     <div class="container-div">
+        <div class="row">
+            <div class="col-sm-12 search-collapse">
+                <form id="formId">
+                    <div class="select-list">
+                        <ul>
+                            <li>
+                                <label>考试标题：</label>
+                                <input type="text" name="examTitle"/>
+                            </li>
+                            <li>
+                                <a class="btn btn-primary btn-rounded btn-sm" onclick="$.table.search()"><i class="fa fa-search"></i>&nbsp;搜索</a>
+                                <a class="btn btn-warning btn-rounded btn-sm" onclick="$.form.reset()"><i class="fa fa-refresh"></i>&nbsp;重置</a>
+                            </li>
+                        </ul>
+                    </div>
+                </form>
+            </div>
+
+            <div class="btn-group-sm" id="toolbar" role="group">
+                <a class="btn btn-warning" onclick="$.table.exportExcel()" shiro:hasPermission="system:chart:export">
+                    <i class="fa fa-download"></i> 导出
+                </a>
+            </div>
+            <div class="col-sm-12 select-table table-striped">
+                <table id="bootstrap-table"></table>
+            </div>
+        </div>
+    </div>
+    <th:block th:include="include :: footer" />
+    <script th:inline="javascript">
+        var prefix = ctx + "system/chart";
+        var questionPrefix = ctx + "system/chart/questionChart";
+
+        $(function() {
+            var options = {
+                url: prefix + "/list",
+                exportUrl: prefix + "/export",
+                modalName: "考试统计",
+                columns: [{
+                    checkbox: true
+                },
+                {
+                    field: 'examTitle', 
+                    title: '考试标题'
+                },
+                {
+                    field: 'avgScore', 
+                    title: '平均分'
+                },
+                {
+                    field: 'peopleCount', 
+                    title: '报名人数'
+                },
+                {
+                    field: 'passCount', 
+                    title: '及格人数'
+                },
+                {
+                    field: 'passLv', 
+                    title: '及格率'
+                },
+                {
+                    title: '操作',
+                    align: 'center',
+                    formatter: function(value, row, index) {
+                        var actions = [];
+                        actions.push('<a class="btn btn-success btn-xs " href="javascript:void(0)" onclick="showQuestionChart(\'' + row.examId + '\',1)"><i class="fa fa-search"></i>未答题排行</a> ');
+                        actions.push('<a class="btn btn-success btn-xs " href="javascript:void(0)" onclick="showQuestionChart(\'' + row.examId + '\',2)"><i class="fa fa-search"></i>错题排行</a> ');
+                        actions.push('<a class="btn btn-success btn-xs " href="javascript:void(0)" onclick="showQuestionChart(\'' + row.examId + '\',3)"><i class="fa fa-search"></i>答对题排行</a> ');
+                        return actions.join('');
+                    }
+                }]
+            };
+            $.table.init(options);
+        });
+        
+        function showQuestionChart(examId,flag){
+        	$.get(questionPrefix+"/"+examId+"/"+flag,function(data){
+        		var html = "<table class='table table-hover'>";
+        		html += "<tr>";
+    			html += "<th width='5%'>排名</th><th>题目</th><th width='5%'>数量</th>";
+    			html += "</tr>";
+        		for(var i=0; i<data.length;i++){
+        			html += "<tr>";
+        			html += "<td>"+(i+1)+"</td><td>"+data[i].questionTitle+"</td>";
+        			if(flag==1)
+        				html += "<td>"+data[i].empCount+"</td>";
+        			else if(flag==2)
+        				html += "<td>"+data[i].errorCount+"</td>";
+           			else if(flag==3)
+           				html += "<td>"+data[i].rightCount+"</td>";
+        				
+        			html += "</tr>";
+        		}
+        		html += "</table>";
+        		var title = "";
+        		if(flag==1)
+        			title = "未答题排行";
+    			else if(flag==2)
+        			title = "答错题排行";
+       			else if(flag==3)
+        			title = "答对题排行";
+        		layer.alert(html, {
+         	        title: title,
+         	        btn: ['确认'],
+         	        btnclass: ['btn btn-primary'],
+         	        area:["80%","600px"]
+         	    });
+        	})
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.project.system.orderschart.mapper.ViewDeptOrdersMapper">
+    
+    <resultMap type="ViewDeptOrders" id="ViewDeptOrdersResult">
+        <result property="deptId"    column="dept_id"    />
+        <result property="counts"    column="counts"    />
+        <result property="amounts"    column="amounts"    />
+    </resultMap>
+
+    <sql id="selectViewDeptOrdersVo">
+        select dept_id, counts, amounts from view_dept_orders
+    </sql>
+
+    <select id="selectViewDeptOrdersList" parameterType="ViewDeptOrders" resultMap="ViewDeptOrdersResult">
+        <include refid="selectViewDeptOrdersVo"/>
+        <where>  
+            <if test="deptId != null "> and dept_id = #{deptId}</if>
+            <!-- 数据范围过滤 -->
+			${params.dataScope}
+        </where>
+    </select>
+    
+    <select id="selectViewDeptOrdersById" parameterType="Long" resultMap="ViewDeptOrdersResult">
+        <include refid="selectViewDeptOrdersVo"/>
+        where dept_id = #{deptId}
+    </select>
+        
+    <insert id="insertViewDeptOrders" parameterType="ViewDeptOrders">
+        insert into view_dept_orders
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="deptId != null ">dept_id,</if>
+            <if test="counts != null ">counts,</if>
+            <if test="amounts != null ">amounts,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="deptId != null ">#{deptId},</if>
+            <if test="counts != null ">#{counts},</if>
+            <if test="amounts != null ">#{amounts},</if>
+         </trim>
+    </insert>
+
+    <update id="updateViewDeptOrders" parameterType="ViewDeptOrders">
+        update view_dept_orders
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="counts != null ">counts = #{counts},</if>
+            <if test="amounts != null ">amounts = #{amounts},</if>
+        </trim>
+        where dept_id = #{deptId}
+    </update>
+
+    <delete id="deleteViewDeptOrdersById" parameterType="Long">
+        delete from view_dept_orders where dept_id = #{deptId}
+    </delete>
+
+    <delete id="deleteViewDeptOrdersByIds" parameterType="String">
+        delete from view_dept_orders where dept_id in 
+        <foreach item="deptId" collection="array" open="(" separator="," close=")">
+            #{deptId}
+        </foreach>
+    </delete>
+    
+</mapper>

@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.project.system.examstudent.mapper.TRoomExamStudentMapper">
+    
+    <resultMap type="TRoomExamStudent" id="TRoomExamStudentResult">
+        <result property="id"    column="id"    />
+        <result property="studentId"    column="student_id"    />
+        <result property="roomId"    column="room_id"    />
+        <result property="examId"    column="exam_id"    />
+        <result property="examSeat"    column="exam_seat"    />
+        <result property="studentAnswerJson"    column="student_answer_json"    />
+        <result property="score"    column="score"    />
+        <result property="screencapPath"    column="screencap_path"    />
+        <result property="videocapPath"    column="videocap_path"    />
+        <result property="judgeState"    column="judge_state"    />
+        <result property="beginTime"    column="begin_time"    />
+        <result property="endTime"    column="end_time"    />
+        <result property="remark"    column="remark"    />
+        <result property="ctime"    column="ctime"    />
+    </resultMap>
+    
+    <resultMap type="TQuestionRecord" id="TQuestionRecordResult">
+        <result property="questionId"    column="question_id"    />
+        <result property="studentId"    column="student_id"    />
+        <result property="questionTypeId"    column="question_type_id"    />
+        <result property="examId"    column="exam_id"    />
+        <result property="score"    column="score"    />
+        <result property="answer"    column="answer"    />
+        <result property="studentAnswer"    column="student_answer"    />
+        <result property="studentScore"    column="student_score"    />
+        <result property="ctime"    column="ctime"    />
+    </resultMap>
+
+    <sql id="selectTRoomExamStudentVo">
+        select id, student_id, room_id, exam_id, exam_seat, student_answer_json, score, screencap_path, videocap_path, judge_state, begin_time, end_time, remark, ctime from t_room_exam_student
+    </sql>
+
+    <select id="selectTRoomExamStudentList" parameterType="TRoomExamStudent" resultMap="TRoomExamStudentResult">
+        <include refid="selectTRoomExamStudentVo"/>
+        <where>  
+            <if test="studentId != null "> and student_id = #{studentId}</if>
+            <if test="examId != null "> and exam_id = #{examId}</if>
+            <if test="params.beginScore != null and params.beginScore != '' and params.endScore != null and params.endScore != ''"> and score between #{params.beginScore} and #{params.endScore}</if>
+            <if test="judgeState != null  and judgeState != ''"> and judge_state = #{judgeState}</if>
+        </where>
+    </select>
+    
+    <select id="selectTRoomExamStudentById" parameterType="Long" resultMap="TRoomExamStudentResult">
+        <include refid="selectTRoomExamStudentVo"/>
+        where id = #{id}
+    </select>
+        
+    <insert id="insertTRoomExamStudent" parameterType="TRoomExamStudent" useGeneratedKeys="true" keyProperty="id">
+        insert into t_room_exam_student
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="studentId != null ">student_id,</if>
+            <if test="roomId != null ">room_id,</if>
+            <if test="examId != null ">exam_id,</if>
+            <if test="examSeat != null  and examSeat != ''">exam_seat,</if>
+            <if test="studentAnswerJson != null  and studentAnswerJson != ''">student_answer_json,</if>
+            <if test="score != null ">score,</if>
+            <if test="screencapPath != null  and screencapPath != ''">screencap_path,</if>
+            <if test="videocapPath != null  and videocapPath != ''">videocap_path,</if>
+            <if test="judgeState != null  and judgeState != ''">judge_state,</if>
+            <if test="beginTime != null ">begin_time,</if>
+            <if test="endTime != null ">end_time,</if>
+            <if test="remark != null  and remark != ''">remark,</if>
+            <if test="ctime != null ">ctime,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="studentId != null ">#{studentId},</if>
+            <if test="roomId != null ">#{roomId},</if>
+            <if test="examId != null ">#{examId},</if>
+            <if test="examSeat != null  and examSeat != ''">#{examSeat},</if>
+            <if test="studentAnswerJson != null  and studentAnswerJson != ''">#{studentAnswerJson},</if>
+            <if test="score != null ">#{score},</if>
+            <if test="screencapPath != null  and screencapPath != ''">#{screencapPath},</if>
+            <if test="videocapPath != null  and videocapPath != ''">#{videocapPath},</if>
+            <if test="judgeState != null  and judgeState != ''">#{judgeState},</if>
+            <if test="beginTime != null ">#{beginTime},</if>
+            <if test="endTime != null ">#{endTime},</if>
+            <if test="remark != null  and remark != ''">#{remark},</if>
+            <if test="ctime != null ">#{ctime},</if>
+         </trim>
+    </insert>
+
+    <update id="updateTRoomExamStudent" parameterType="TRoomExamStudent">
+        update t_room_exam_student
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="studentId != null ">student_id = #{studentId},</if>
+            <if test="roomId != null ">room_id = #{roomId},</if>
+            <if test="examId != null ">exam_id = #{examId},</if>
+            <if test="examSeat != null  and examSeat != ''">exam_seat = #{examSeat},</if>
+            <if test="studentAnswerJson != null  and studentAnswerJson != ''">student_answer_json = #{studentAnswerJson},</if>
+            <if test="score != null ">score = #{score},</if>
+            <if test="screencapPath != null  and screencapPath != ''">screencap_path = #{screencapPath},</if>
+            <if test="videocapPath != null  and videocapPath != ''">videocap_path = #{videocapPath},</if>
+            <if test="judgeState != null  and judgeState != ''">judge_state = #{judgeState},</if>
+            <if test="beginTime != null ">begin_time = #{beginTime},</if>
+            <if test="endTime != null ">end_time = #{endTime},</if>
+            <if test="remark != null  and remark != ''">remark = #{remark},</if>
+            <if test="ctime != null ">ctime = #{ctime},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteTRoomExamStudentById" parameterType="Long">
+        delete from t_room_exam_student where id = #{id}
+    </delete>
+
+    <delete id="deleteTRoomExamStudentByIds" parameterType="String">
+        delete from t_room_exam_student where id in 
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+    
+    
+    <insert id="insertQuestionRecords">
+    	INSERT INTO t_question_record 
+		(student_id,question_id,question_type_id,exam_id,score,answer,student_answer,student_score) VALUES
+		<foreach collection="qrlist"  index="idx" item="qr"  separator=",">
+			(#{qr.studentId}, #{qr.questionId}, #{qr.questionTypeId}, #{qr.examId}, #{qr.score}, #{qr.answer}, #{qr.studentAnswer}, #{qr.studentScore})
+		</foreach>
+    </insert>
+</mapper>

@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html  lang="zh" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+    <title>中国电子劳动学会</title>
+    <meta name="description" content="若依后台管理框架">
+    <link href="../static/css/bootstrap.min.css" th:href="@{/css/bootstrap.min.css}" rel="stylesheet"/>
+    <link href="../static/css/font-awesome.min.css" th:href="@{/css/font-awesome.min.css}" rel="stylesheet"/>
+    <link href="../static/css/style.css" th:href="@{/css/style.css}" rel="stylesheet"/>
+    <link href="../static/css/login.min.css" th:href="@{/css/login.min.css}" rel="stylesheet"/>
+    <link href="../static/ruoyi/css/ry-ui.css" th:href="@{/ruoyi/css/ry-ui.css?v=4.2.0}" rel="stylesheet"/>
+    <!-- 360浏览器急速模式 -->
+    <meta name="renderer" content="webkit">
+    <!-- 避免IE使用兼容模式 -->
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <link rel="shortcut icon" href="../static/favicon.ico" th:href="@{favicon.ico}"/>
+    <style type="text/css">label.error { position:inherit;  }</style>
+    <script>
+        if(window.top!==window.self){alert('未登录或登录超时。请重新登录');window.top.location=window.location};
+    </script>
+</head>
+<body class="signin" >
+	<img id="logo" th:src="@{/img/system.png}"  />
+	<div style="float: right;margin: 20px;">
+		<a id="reg" th:href="@{/login}" style="float:right">学生登录</a>
+		<a id="reg" th:href="@{/register}" style="float:right">学生注册 | &nbsp; </a>
+	</div>
+	<div class="menu" >
+		<ul>
+			<li id="index" onclick="location.href='login'">首页</li>
+			<li onclick="company()">授权单位</li>
+			<li onclick="">新闻资讯</li>
+			<li onclick="cooperate()">商务洽谈</li>
+			<li onclick="callMe()">联系我们</li>
+		</ul>
+	</div>
+    <div id="sign" class="signinpanel">
+        <div class="row centerDiv" style="height:250px">
+            <div class="col-sm-5">
+                <div class="signin-info" id="notice">
+                </div>
+            </div>
+            <div class="col-sm-3 loginDiv">
+                <form id="signupForm" autocomplete="off">
+                    <h4 style="margin-top: 5%"><font id="roleflag">学生登录|<a href="login?flag=teacher">老师登录</a></font></h4>
+                    <!-- <p class="m-t-md">你若不离不弃，我必生死相依</p> -->
+                    <input type="text"     name="username" class="form-control uname"     placeholder="用户名/手机号" value=""    />
+                    <input type="password" name="password" class="form-control pword"     placeholder="密码"   value="" />
+					<div class="row m-t" th:if="${captchaEnabled==true}">
+						<div class="col-xs-5">
+						    <input type="text" name="validateCode" class="form-control code" placeholder="验证码" maxlength="5" />
+						</div>
+						<div class="col-xs-7">
+							<a href="javascript:void(0);" title="点击更换验证码">
+								<img th:src="@{captcha/captchaImage(type=${captchaType})}" class="imgcode" width="100%"/>
+							</a>
+						</div>
+					</div>
+                    <div class="checkbox-custom hidden" th:classappend="${captchaEnabled==false} ? 'm-t'">
+				        <input type="checkbox" id="rememberme" name="rememberme"> <label for="rememberme">记住我</label>
+				    </div>
+                    <button class="btn btn-success btn-block" id="btnSubmit" data-loading="正在验证登录，请稍后...">登录</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div id="company" class="signinpanel" style="display:none">
+       <div id="companyDate" class="row centerDiv">
+            <div class="col-sm-3">
+                <div class="ibox">
+                    <div class="ibox-title">
+                        <span class="label label-primary pull-right"></span>
+                        <h5>	</h5>
+                    </div>
+                    <div class="ibox-content">
+                        <font>简介:</font>
+                        <p>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="cooperate" class="signinpanel" style="display:none">
+       <div class="row centerDiv">
+       	<div class="col-sm-12" style="height:300px"> 
+                <form id="businessForm" class="signupForm" style="padding: 0px">
+                    <div class="form-group">
+                        <div class="col-sm-8">
+                            <input name="startUserName" class="form-control" id="startUserName" aria-required="true" required type="text" placeholder="请输入姓名">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="col-sm-8">
+                            <input name="bsTel" class="form-control" id="bsTel" aria-required="true" required type="text" placeholder="请输入联系方式">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="col-sm-8">
+                            <textarea name="bsContext" class="form-control" id="bsContext" aria-required="true" required style="height:120px" placeholder="请输入洽谈内容"></textarea>
+                            <button class="btn btn-success" type="button" id="business">提交</button>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="col-sm-8 col-sm-offset-3">
+                            
+                        </div>
+                    </div>
+                </form>
+            </div>
+       </div>
+    </div>
+    <div id="callMe" class="signinpanel" style="display:none">
+       <div class="row centerDiv">
+       		<div class="col-sm-8">
+                <div class="ibox">
+                    <div class="ibox-content">
+                        <p>联系电话：<font id="tel"></font>  </p>
+                        <p>联系地址：<font id="address"></font>  </p>
+                    </div>
+                </div>
+            </div>
+       </div>
+    </div>
+    <div class="options" style="margin-top: 5.8%;padding: 0px;background-color:#eaedf4;height: 180px">
+    	<div style="text-align: center;">
+    		<img src="http://47.93.241.224:8080/files/options/a.jpg" />
+    		<img src="http://47.93.241.224:8080/files/options/b.jpg" />
+    		<img src="http://47.93.241.224:8080/files/options/c.jpg" />
+    		<img src="http://47.93.241.224:8080/files/options/d.jpg" />
+    		<img src="http://47.93.241.224:8080/files/options/e.jpg" />
+    	</div>
+    </div>
+    <div class="project" style="margin-top: 1%;padding: 20px;">
+    	<div><center><h2>项目板块</h2></center></div><br/>
+    	<div><center><h5>项目板块项目板块项目板块项目板块项目板块项目板块项目板块项目板块项目板块项目板块项目板块项目板块项目板块项目板块项目板块</h5></center></div>
+    	<br/>
+    	<div style="text-align: center;margin:0px auto; width:100%;">
+    		<ul>
+    			<li lang="p1.jpg">xxx板块1</li>
+    			<li lang="p2.jpg">xxx板块2</li>
+    			<li lang="p3.jpg">xxx板块3</li>
+    			<li lang="p4.jpg">xxx板块4</li>
+    		</ul>
+    	</div>
+    </div>
+    <div class="tearcher" style="margin-top: 1%;padding: 20px;background-color:#eaedf4;text-align: center;height: 780px">
+    	<div><center><h2>教师认证</h2></center></div><br/>
+    	<div><center><h5>教师认证教师认证教师认证教师认证教师认证教师认证教师认证教师认证教师认证教师认证教师认证教师认证教师认证教师认证教师认证</h5></center></div>
+    	<br/>
+    	<img src="http://47.93.241.224:8080/files/teacher/teacher.jpg" style="text-align: center;margin:0px auto; width:80%;" />
+    	<div class="teac" style="margin:0px auto; width:80%;">
+    		<div>
+    			<img src="http://47.93.241.224:8080/files/teacher/engineer_1.png" style="float: left;">
+    			<h3>国际认证</h3>
+    			<h5>促进国际人员流动、打破贸易壁垒、全面参与国标和规则的制国工程师的国际地位，保护知识产权。</h5>
+    		</div>
+    		<div>
+    			<img src="http://47.93.241.224:8080/files/teacher/engineer_2.png" style="float: left;">
+    			<h3>评价体系</h3>
+    			<h5>包括技术标准体系、组织实施体系和质量管理体系。</h5>
+    		</div>
+    		<div>
+    			<img src="http://47.93.241.224:8080/files/teacher/engineer_3.png" style="float: left;">
+    			<h3>专业体系</h3>
+    			<h5>包括以电子与通信技术、计算机技术、应用学科三个专业大类。</h5>
+    		</div>
+    		<div>
+    			<img src="http://47.93.241.224:8080/files/teacher/engineer_4.png" style="float: left;">
+    			<h3>评价标准</h3>
+    			<h5>标准涵盖以教育经历、工作经历、素质能力要求、职业道德四部分组成。</h5>
+    		</div>
+    		<div>
+    			<img src="http://47.93.241.224:8080/files/teacher/engineer_5.png" style="float: left;">
+    			<h3>评价程序</h3>
+    			<h5>申请受理、考核评价、审议三部分组成</h5>
+    		</div>
+    		<div>
+    			<img src="http://47.93.241.224:8080/files/teacher/engineer_6.png" style="float: left;">
+    			<h3>评价级别</h3>
+    			<h5>初级工程师、助理工程师、中级工程师、高级工程师、资深工程师五个级别。</h5>
+    		</div>
+    	</div>
+    </div>
+    
+    <div class="projectIng" style="margin-top: 1%;padding: 20px;text-align: center;">
+    	<div><center><h2>项目进度</h2></center></div><br/>
+    	<div style="width:50%;float: left;">
+			 <br/><br/><br/><h3>十九年创新之路</h3>
+			 <p>e-cology发布9个大版本,70多个小版本,<br>引领OA行业发展</p>
+			 <div class="textsplit" style="width: 318px;"></div>
+			 <h3>PC端</h3>
+			 <p>包含流程、门户、知识、人事、沟通、客户、项目、财务等</p>
+			 <p>20多个功能模块</p>
+			 <div class="textsplit" style="width: 432px;"></div>
+			 <h3>APP移动端</h3>
+			 <p>形成智能语音、考勤、会议、日程、通信录、流程审批、移动任务、<br>移动邮件、移动文档等20多个功能模块</p>
+			 <div class="textsplit" style="width: 512px;"></div>
+		 </div>
+        <img style="width:40%;float: left;" src="http://47.93.241.224:8080/files/projectImg/projectImg.png" />
+   	</div>
+    
+    
+    <div id="friendLine" class="links" style="margin-top: 25.8%;padding: 0px;background-color:#eaedf4;height: 180px">
+    </div>
+    
+    <div class="signup-footer">
+        <div class="pull-left">
+            &copy;  All Rights Reserved. 中国电子劳动学会 | 京ICP备20021684 <br>
+        </div>
+    </div> 
+<script th:inline="javascript"> var ctx = [[@{/}]]; var captchaType = [[${captchaType}]]; </script>
+<!-- 全局js -->
+<script src="../static/js/jquery.min.js" th:src="@{/js/jquery.min.js}"></script>
+<script src="../static/js/bootstrap.min.js" th:src="@{/js/bootstrap.min.js}"></script>
+<!-- 验证插件 -->
+<script src="../static/ajax/libs/validate/jquery.validate.min.js" th:src="@{/ajax/libs/validate/jquery.validate.min.js}"></script>
+<script src="../static/ajax/libs/validate/messages_zh.min.js" th:src="@{/ajax/libs/validate/messages_zh.min.js}"></script>
+<script src="../static/ajax/libs/layer/layer.min.js" th:src="@{/ajax/libs/layer/layer.min.js}"></script>
+<script src="../static/ajax/libs/blockUI/jquery.blockUI.js" th:src="@{/ajax/libs/blockUI/jquery.blockUI.js}"></script>
+<script src="../static/ruoyi/js/ry-ui.js" th:src="@{/ruoyi/js/ry-ui.js?v=4.2.0}"></script>
+<script src="../static/ruoyi/login.js" th:src="@{/ruoyi/login.js}"></script>
+
+
+ <script th:inline="javascript">
+    	var notices = [[${notices}]];
+    	var configs = [[${configs}]];
+    	var callMeInfo = [[${callMeInfo}]];
+    	var friendLines = [[${friendLines}]];
+    	var flag = [[${flag}]];
+    	$(function(){
+    		if(flag == "teacher"){
+    			$("#roleflag").html('<a href="login">学生登录</a>|老师登录');
+    			$("#index").attr("onclick","location.href='login?flag=teacher'");
+    		}else{
+    			$("#roleflag").html('学生登录|<a href="login?flag=teacher">老师登录</a>');
+    			$("#index").attr("onclick","location.href='login'");
+    		}
+    		$("#friendLine").html(friendLines);
+    		var head = '<h4>最新公告 &nbsp;  &nbsp;  &nbsp; ';
+    		var tent = '';
+    		//$("#signupForm").css("height",$("#signupForm"));
+    		if(notices.length > 0){
+    			var n = 0;
+    			for(var i=0; i<notices.length ;i++){
+    				if(notices[i].noticeType=='2'){
+    					head += '<a href="javascript:showPanel('+n+')"><i class="fa fa-circle" aria-hidden="true"></i> &nbsp </a>';
+    					
+    					var disp = "none";
+    					if(n==0){
+    						disp = "block";
+    					}
+    					tent += '<div class="panel panel-default " style="display: '+disp+'"> '+
+			                 '      <div class="panel-body"><H3> '+notices[i].noticeTitle+'</H3>'+
+			                 '		<div class="panel-p">'+notices[i].noticeContent+'</div>'+
+			                 '		<p style="float:right">'+notices[i].createTime+'</p>'+
+			                 '      </div>'+
+	                   		 '</div>';
+    					n ++;
+    				}
+    			}
+    			head += '</h4>';
+	    		$("#notice").html(head + tent);
+    		}
+        	$("#business").click(function(){
+        		$.post("api/business/addBusiness",$("#businessForm").serialize(),function(msg){
+        			if(msg == 'success'){
+        				alert("提交成功，请耐心等待");
+        				location.href = location.href;
+        			}else{
+        				$.modal.alert("提交失败，请重试");
+        			}
+        		})
+        	});
+        	
+        	$(".project li").mouseover(function(){
+        		var img = "http://47.93.241.224:8080/files/projects/" + $(this).attr("lang");
+        		$(".project ul").css("background-image","url('"+img+"')");
+        	});
+    	})
+    	function checkInfo(ele){
+    		if($(ele).next().is(":hidden")){
+    			$(ele).next().show(300);
+    		}else{
+    			$(ele).next().hide(300);
+    		}
+    		
+    	}
+		var i = 1;
+    	function changeBg(){
+    		if(i==1){
+    			$(".signin").css("background-image","url('img/2.jpg')");
+    			i = 2;
+    		}else if (i==2){
+    			$(".signin").css("background-image","url('img/3.jpg')");
+    			i = 3;
+    		}else{
+    			$(".signin").css("background-image","url('img/1.jpg')");
+    			i = 1;
+    		}
+		}
+    	function changeNotice(){
+    		var a = $(".panel-default").length;
+    		for(var s=0;s<a;s++){
+    			if(!$($(".panel-default")[s]).is(":hidden")){
+    				var hideIndex = s;
+        			var showIndex = s + 1;
+        			if(s == (a-1)){
+        				showIndex = 0;
+        				s = -1;
+        			}
+    				$($(".panel-default")[hideIndex]).hide();
+        			$($(".panel-default")[showIndex]).fadeIn(1200);
+    				return;
+    			}
+    		}
+    	}
+    	var times = setInterval(function(){
+    		changeBg();
+    	},5000);
+    	var times2 = setInterval(function(){
+    		changeNotice();
+    	},7000);
+    	function showPanel(idx){
+    		clearInterval(times2);
+    		$(".panel-default").hide();
+    		$($(".panel-default")[idx]).fadeIn(1200);
+    		times2 = setInterval(function(){
+    			changeNotice();
+        	},7000);
+    	}
+    	function company(){
+    		$("#sign,#cooperate,#callMe").hide();
+    		$("#company").show();
+    		$.get("api/company/list",function(data){
+    			var html = "";
+    			if(data.length>0){
+    				for(var i=0;i<data.length;i++){
+	   					html += '<div class="col-sm-3">'+
+		    		            '   <div class="ibox">'+
+		    		            '       <div class="ibox-title">'+
+		    		            '            <h5>'+data[i].cname+'</h5>'+
+		    		             '       </div>'+
+		    		             '       <div class="ibox-content">'+
+		    		             '           <font>简介:</font>'+
+		    		             '           <p>'+data[i].synopsis+'</p>'+
+		    		             '       </div>'+
+		    		             '   </div>'+
+		    		           ' </div>';
+    				}
+    			}
+	    		$("#companyDate").html(html);
+    		});
+    	}
+    	function cooperate(){
+    		$("#sign,#company,#callMe").hide();
+    		$("#cooperate").show();
+    	}
+    	function callMe(){
+    		$("#sign,#cooperate,#company").hide();
+    		$("#callMe").show();
+    		$("#tel").html(callMeInfo.split('-')[0]);
+    		$("#address").html(callMeInfo.split('-')[1]);
+    	}
+    </script>
+</body>
+<style>
+	body{background-color: #66B3FF}
+	#logo{
+		width:18%;
+	}
+	.centerDiv{
+		margin-left: -40%;
+		width: 180%;
+		color: black;	
+	}
+	.loginDiv{
+		float: right;
+	}
+	.panel-heading{
+		height:23px;
+		font-size: 11px;
+		padding: 3px;
+		overflow: hidden;
+		background-color: blue;
+	}
+	.panel-p{
+		overflow: scroll;
+		height: 150px;
+	}
+	#signupForm,.signupForm,#notice{
+		 box-shadow: .300rem .300rem .300rem rgba(0,0,0,.2);
+	    -moz-border-radius: 15px;
+	    -webkit-border-radius: 15px;
+	    height: 300px;
+	    padding: 8px;
+	}
+	.signup-footer{
+		float: right;
+		bottom: 0px;
+		right:0px;
+	}
+	.signinpanel{
+		margin-top: 5%;
+		padding: 20px;
+	}
+	h4{color:white;}
+	h2{font-weight: bold;}
+	.menu{
+		background-color: #0000C6;
+		width: 100%;
+		height: 45px;
+		text-align: center;
+		padding: 0px;
+	}
+	.menu ul{list-style:none;margin:0px;color: white;font-size: 15px;margin-left: 5%}
+	.menu li{
+		margin:0px;
+		float:left;
+		width: 120px;
+	    line-height: 45px;
+	    
+	}
+	.menu li:hover {
+		border-left: 1px solid;
+		border-right: 1px solid;
+		 box-shadow: .300rem .300rem .300rem rgba(0,0,0,.2);
+	    cursor: pointer;
+	}
+	.panel{
+		filter:alpha(opacity=70);
+		-moz-opacity:0.7;
+		-khtml-opacity: 0.7;
+		opacity: 0.7;
+	}
+	.project{ text-align: center;}
+	.project ul{
+		list-style:none;
+		color: black;
+		font-size: 15px;
+		width: 80%;
+		text-align: center;
+		height: 500px;
+		margin:0 auto;
+		background-image: url("http://47.93.241.224:8080/files/projects/p1.jpg");
+		background-repeat: no-repeat;
+		background-size: 100%;
+	    -moz-border-radius: 15px;
+	    -webkit-border-radius: 15px;
+	}
+	.project li{
+		float:left;
+	    line-height: 25px;
+	    background-color: #E6E6FA;
+	    text-align: center;
+	    border: 1px solid white;
+	    width: 24%;
+	    margin-left: 0.5%;
+	    margin-top: 0.5%;
+		filter:alpha(opacity=70);
+		-moz-opacity:0.7;
+		-khtml-opacity: 0.7;
+		opacity: 0.7;
+	    -moz-border-radius: 15px;
+	    -webkit-border-radius: 15px;
+	}
+	.project li:hover {
+		box-shadow: .300rem .300rem .300rem rgba(0,0,0,.2);
+	    cursor: pointer;
+	    border: 1px solid;
+		filter:alpha(opacity=70);
+		-moz-opacity:0.7;
+		-khtml-opacity: 0.7;
+		opacity: 0.7;
+	}
+	.project img{
+		width: 94%;
+	}
+	.options img{
+		 box-shadow: .300rem .300rem .300rem rgba(0,0,0,.2);
+		margin: 40px;
+		width: 100px;
+		margin-bottom: 0px;
+	}
+	.teac div{
+		width: 48%;float: left;margin: 10px;height: 90px;text-align: left;
+	}
+	.teac h5{
+		width: 100%;
+	}
+</style>
+</html>

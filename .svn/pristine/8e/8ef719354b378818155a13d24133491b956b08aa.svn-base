@@ -1,0 +1,125 @@
+package com.ruoyi.project.system.api.controller;
+
+import java.io.IOException;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.alibaba.fastjson.JSONObject;
+import com.google.common.collect.Maps;
+import com.ruoyi.common.utils.HttpUtils;
+import com.ruoyi.project.system.config.mapper.ConfigMapper;
+
+import io.swagger.annotations.Api;
+
+@Api
+@Controller
+@RequestMapping("/api/python")
+public class PythonApi {
+	@Value("${python_api.method}") 
+	private  String method;
+	@Value("${python_api.url}") 
+	private  String url;
+	@Value("${python_api.parms}") 
+	private  String parms;
+	@Value("${python_api.values}") 
+	private  String values;
+	@Value("${python_api.result_key}") 
+	private  String result_key;
+	
+
+	@Value("${python3_api.url}") 
+	private  String url3;
+	
+	/**
+	 * 编译python接口
+	 * @param code
+	 * @return
+	 */
+	public String pythonRun(String code) {
+		String result = "";
+		String [] parmsArray = parms.split("##");
+		String [] valuesArray = values.split("##");
+		try {
+			Map<String, String> parm = Maps.newHashMap();
+			for(int i=0;i<parmsArray.length;i++) {
+				if(valuesArray[i].equals("$code")) {
+					parm.put(parmsArray[i],code);
+				}else {
+					parm.put(parmsArray[i],valuesArray[i].equals("empty")?"":valuesArray[i]);
+				}
+			}
+			if(method.equals("POST")) {
+				result = HttpUtils.URLPost(url, parm, "UTF-8");
+			}else {
+				result = HttpUtils.URLGet(url, parm, "UTF-8");
+			}
+			if(result!="") {
+				JSONObject obj = JSONObject.parseObject(result);
+				result = obj.getString(result_key);
+				result = result.replaceAll("\n","\r\n");
+				result = result.substring(0,result.length()-2);
+			}
+		}catch (Exception e) {
+			e.printStackTrace();
+		}
+		return result;
+	}
+	
+	/**
+	 * 编译python接口
+	 * @param code
+	 * @return
+	 */
+	public String pythonRun3(String code) {
+		Map<String, String> parm = Maps.newHashMap();
+		parm.put("code",code);
+		String result = "";
+		try {
+			result = HttpUtils.URLPost(url3, parm, "UTF-8"); //"https://tool.runoob.com/compile2.php"
+			System.out.println(result);
+			if(result!="") {
+				JSONObject obj = JSONObject.parseObject(result);
+				result = obj.getString("output");
+				result = result.replaceAll("\n","\r\n");
+				result = result.substring(0,result.length()-2);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return result;
+	}
+	
+	
+	@GetMapping("/run")
+	@ResponseBody
+	public String compile(HttpServletRequest request){
+		String result = "";
+		try {
+			result = pythonRun3(request.getParameter("code"));
+			System.out.println("javaApi请求结果："+result);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return result;
+	}
+	 
+	public static void main(String[] args) throws IOException {
+		PythonApi pa = new PythonApi();
+		pa.parms = "code##token##language##fileext##stdin";
+		pa.method = "POST";
+		pa.url = "https://tool.runoob.com/compile2.php";
+		pa.values = "$code##4381fe197827ec87cbac9552f14ec62a##15##py3##empty";
+		pa.result_key = "output";
+		String result = pa.pythonRun("print ('123')");
+		System.out.println(result);
+	}
+}

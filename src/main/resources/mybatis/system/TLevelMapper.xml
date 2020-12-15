@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.project.system.level.mapper.TLevelMapper">
+    
+    <resultMap type="TLevel" id="TLevelResult">
+        <result property="levelId"    column="level_id"    />
+        <result property="levelName"    column="level_name"    />
+        <result property="levelFullName"    column="level_full_name"    />
+        <result property="levelRemark"    column="level_remark"    />
+        <result property="levelValue"    column="level_value"    />
+    </resultMap>
+
+    <sql id="selectTLevelVo">
+        select level_id, level_name, level_full_name, level_remark,level_value from t_level
+    </sql>
+
+    <select id="selectTLevelList" parameterType="TLevel" resultMap="TLevelResult">
+        <include refid="selectTLevelVo"/>
+        <where>  
+            <if test="levelName != null  and levelName != ''"> and level_name like concat('%', #{levelName}, '%')</if>
+            <if test="levelFullName != null  and levelFullName != ''"> and level_full_name like concat('%', #{levelFullName}, '%')</if>
+        </where>
+    </select>
+    
+    <select id="selectTLevelById" parameterType="Long" resultMap="TLevelResult">
+        <include refid="selectTLevelVo"/>
+        where level_id = #{levelId}
+    </select>
+        
+    <select id="selectTLevelByName" parameterType="String" resultMap="TLevelResult">
+        <include refid="selectTLevelVo"/>
+        where level_name = #{levelName}
+    </select>
+    
+    <insert id="insertTLevel" parameterType="TLevel" useGeneratedKeys="true" keyProperty="levelId">
+        insert into t_level
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="levelName != null  and levelName != ''">level_name,</if>
+            <if test="levelFullName != null  and levelFullName != ''">level_full_name,</if>
+            <if test="levelRemark != null  and levelRemark != ''">level_remark,</if>
+            <if test="levelValue != null  and levelValue != ''">level_value,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="levelName != null  and levelName != ''">#{levelName},</if>
+            <if test="levelFullName != null  and levelFullName != ''">#{levelFullName},</if>
+            <if test="levelRemark != null  and levelRemark != ''">#{levelRemark},</if>
+            <if test="levelValue != null  and levelValue != ''">#{levelValue},</if>
+         </trim>
+    </insert>
+
+    <update id="updateTLevel" parameterType="TLevel">
+        update t_level
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="levelName != null  and levelName != ''">level_name = #{levelName},</if>
+            <if test="levelFullName != null  and levelFullName != ''">level_full_name = #{levelFullName},</if>
+            <if test="levelRemark != null  and levelRemark != ''">level_remark = #{levelRemark},</if>
+            <if test="levelValue != null  and levelValue != ''">level_value = #{levelValue},</if>
+        </trim>
+        where level_id = #{levelId}
+    </update>
+
+    <delete id="deleteTLevelById" parameterType="Long">
+        delete from t_level where level_id = #{levelId}
+    </delete>
+
+    <delete id="deleteTLevelByIds" parameterType="String">
+        delete from t_level where level_id in 
+        <foreach item="levelId" collection="array" open="(" separator="," close=")">
+            #{levelId}
+        </foreach>
+    </delete>
+    
+</mapper>

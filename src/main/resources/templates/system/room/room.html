@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org" xmlns:shiro="http://www.pollix.at/thymeleaf/shiro">
+<head>
+    <th:block th:include="include :: header('考场管理列表')" />
+</head>
+<body class="gray-bg">
+     <div class="container-div">
+        <div class="row">
+            <div class="col-sm-12 search-collapse">
+                <form id="formId">
+                    <div class="select-list">
+                        <ul>
+                            <li>
+                                <label>关联考试：</label>
+                                <input type="text" name="examId"/>
+                            </li>
+                            <li>
+                                <label>考场名称：</label>
+                                <input type="text" name="roomName"/>
+                            </li>
+                            <li>
+                                <label>监考老师：</label>
+                                <input type="text" name="params[teacherUserName]"/>
+                            </li>
+                            <li>
+                                <a class="btn btn-primary btn-rounded btn-sm" onclick="$.table.search()"><i class="fa fa-search"></i>&nbsp;搜索</a>
+                                <a class="btn btn-warning btn-rounded btn-sm" onclick="$.form.reset()"><i class="fa fa-refresh"></i>&nbsp;重置</a>
+                            </li>
+                        </ul>
+                    </div>
+                </form>
+            </div>
+
+            <div class="btn-group-sm" id="toolbar" role="group">
+                <a class="btn btn-primary single disabled" onclick="$.operate.edit()" shiro:hasPermission="system:room:edit">
+                    <i class="fa fa-edit"></i> 修改
+                </a>
+                <a class="btn btn-warning" onclick="$.table.exportExcel()" shiro:hasPermission="system:room:export">
+                    <i class="fa fa-download"></i> 导出
+                </a>
+            </div>
+            <div class="col-sm-12 select-table table-striped">
+                <table id="bootstrap-table"></table>
+            </div>
+        </div>
+    </div>
+    <th:block th:include="include :: footer" />
+    <script th:inline="javascript">
+        var editFlag = [[${@permission.hasPermi('system:room:edit')}]];
+        var removeFlag = [[${@permission.hasPermi('system:room:remove')}]];
+        var roomTypeDatas = [[${@dict.getType('sys_room_type')}]];
+        var prefix = ctx + "system/room";
+        var stateDatas = [[${@dict.getType('sys_exam_state')}]];
+        $(function() {
+            var options = {
+                url: prefix + "/list",
+                createUrl: prefix + "/add",
+                updateUrl: prefix + "/edit/{id}",
+                removeUrl: prefix + "/remove",
+                exportUrl: prefix + "/export",
+                modalName: "考场管理",
+                columns: [{
+                    checkbox: true
+                },
+                {
+                    field: 'roomId', 
+                    title: '考场编号',
+                    visible: false
+                },
+                {
+                    field: 'roomName', 
+                    title: '考场名称'
+                },
+                {
+                    field: 'roomType', 
+                    title: '考场类型',
+                    formatter: function(value, row, index) {
+                       return $.table.selectDictLabel(roomTypeDatas, value);
+                    }
+                },
+                {
+                    field: 'ctime', 
+                    title: '创建时间'
+                },
+                {
+                    field: 'params.teacherUserName', 
+                    title: '监考老师'
+                },
+                {
+                    field: 'params.examTitle', 
+                    title: '关联考试'
+                },
+                {
+                    field: 'params.studentCount', 
+                    title: '考场人数'
+                },
+                {
+                    field: 'params.state', 
+                    title: '考试状态',
+                    formatter: function(value, row, index) {
+                       return $.table.selectDictLabel(stateDatas, value);
+                    }
+                },
+                {
+                    title: '操作',
+                    align: 'center',
+                    formatter: function(value, row, index) {
+                        var actions = [];
+                        actions.push('<a class="btn btn-success btn-xs ' + editFlag + '" href="javascript:void(0)" onclick="$.operate.edit(\'' + row.roomId + '\')"><i class="fa fa-edit"></i>编辑</a> ');
+                        actions.push('<a class="btn btn-info btn-xs " href="javascript:void(0)" onclick="$.modal.openTab(\''+row.roomName+'学员考试\',\'' + ctx + "system/examstudent?roomId=" + row.roomId + '\')"><i class="fa fa-search"></i>学员考试列表</a>');
+                        return actions.join('');
+                    }
+                }]
+            };
+            $.table.init(options);
+        });
+    </script>
+</body>
+</html>

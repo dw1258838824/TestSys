@@ -1,0 +1,270 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.project.system.exam.mapper.TExamMapper">
+    
+    <resultMap type="TExam" id="TExamResult">
+        <result property="examId"    column="exam_id"    />
+        <result property="examTitle"    column="exam_title"    />
+        <result property="levelId"    column="level_id"    />
+        <result property="examMode"    column="exam_mode"    />
+        <result property="subjectId"    column="subject_id"    />
+        <result property="examClaim"    column="exam_claim"    />
+        <result property="beginTime"    column="begin_time"    />
+        <result property="endTime"    column="end_time"    />
+        <result property="operateBeginTime"    column="operate_begin_time"    />
+        <result property="operateEndTime"    column="operate_end_time"    />
+        <result property="argueBeginTime"    column="argue_begin_time"    />
+        <result property="argueEndTime"    column="argue_end_time"    />
+        <result property="rignBeginTime"    column="rign_begin_time"    />
+        <result property="rignEndTime"    column="rign_end_time"    />
+        <result property="paperId"    column="paper_id"    />
+        <result property="state"    column="state"    />
+        <result property="ctime"    column="ctime"    />
+        <result property="creator"    column="creator"    />
+        <result property="isDelete"    column="is_delete"    />
+        <result property="price"    column="price"    />
+        <result property="uid"    column="uid"    />
+        <result property="params.levelName"    column="level_name"    />
+        <result property="params.levelValue"    column="level_value"    />
+        <result property="params.subjectName"    column="subject_name"    />
+        <result property="params.paperName"    column="paper_name"    />
+        <result property="params.paperDoc"    column="paper_doc"    />
+    </resultMap>
+
+    <sql id="selectTExamVo">
+        SELECT
+			exam_id,
+			exam_title,
+			q.level_id,
+			exam_mode,
+			q.subject_id,
+			exam_claim,
+			operate_begin_time,
+			operate_end_time,
+			argue_begin_time,
+			argue_end_time,
+			begin_time,
+			end_time,
+			rign_begin_time,
+			rign_end_time,
+			q.paper_id,
+			state,
+			q.ctime,
+			q.creator,
+			q.is_delete,
+			l.level_name,
+			l.level_value,
+			s.subject_name,
+			p.paper_name,
+			p.paper_doc,
+			price,
+			q.uid
+		FROM
+			t_exam q
+		LEFT JOIN t_level l on l.level_id = q.level_id
+		LEFT JOIN t_subject s on s.subject_id = q.subject_id
+		LEFT JOIN t_paper p on q.paper_id = p.paper_id
+    </sql>
+
+
+    <select id="apiGet" parameterType="TExam" resultMap="TExamResult">
+        SELECT
+			exam_id,
+			exam_title,
+			q.level_id,
+			exam_mode,
+			q.subject_id,
+			exam_claim,
+			operate_begin_time,
+			operate_end_time,
+			argue_begin_time,
+			argue_end_time,
+			begin_time,
+			end_time,
+			price,
+			rign_begin_time,
+			rign_end_time,
+			q.paper_id,
+			state,
+			q.ctime,
+			q.creator,
+			q.is_delete,
+			l.level_name,
+			l.level_value,
+			s.subject_name,
+			p.paper_name,
+			q.uid
+		FROM
+			t_exam q
+		LEFT JOIN t_level l on l.level_id = q.level_id
+		LEFT JOIN t_subject s on s.subject_id = q.subject_id
+		LEFT JOIN t_paper p on q.paper_id = p.paper_id
+		WHERE q.exam_id = #{examId}
+    </select>
+
+    <select id="apiList" parameterType="TExam" resultMap="TExamResult">
+    SELECT
+			exam_id,
+			exam_title,
+			q.level_id,
+			exam_mode,
+			q.subject_id,
+			exam_claim,
+			begin_time,
+			end_time,
+			operate_begin_time,
+			operate_end_time,
+			argue_begin_time,
+			argue_end_time,
+            price,
+			rign_begin_time,
+			rign_end_time,
+			q.paper_id,
+			state,
+			q.ctime,
+			q.creator,
+			q.is_delete,
+			l.level_name,
+            l.level_value,
+			s.subject_name,
+			p.paper_name,
+			price,
+			q.uid
+		FROM
+			t_exam q
+		LEFT JOIN t_level l on l.level_id = q.level_id
+		LEFT JOIN t_subject s on s.subject_id = q.subject_id
+		LEFT JOIN t_paper p on q.paper_id = p.paper_id
+		<where>
+            <if test="examTitle != null  and examTitle != ''"> and exam_title like concat('%', #{examTitle}, '%')</if>
+            <if test="levelId != null "> and q.level_id = #{levelId}</if>
+            <if test="examMode != null  and examMode != ''"> and exam_mode = #{examMode}</if>
+            <if test="subjectId != null "> and q.subject_id = #{subjectId}</if>
+            <if test="beginTime != null "> and begin_time = #{beginTime}</if>
+            <if test="params.beginBeginTime != null and params.beginBeginTime != '' "> and q.begin_time >= #{params.beginBeginTime}</if>
+            <if test="params.endBeginTime != null and params.endBeginTime != '' "> and q.argue_end_time <![CDATA[ <= ]]>  CONCAT(#{params.endBeginTime},' 23:59:59')</if>
+            <if test="params.beginRignBeginTime != null and params.beginRignBeginTime != '' "> and q.rign_begin_time >= #{params.beginRignBeginTime}</if>
+            <if test="params.endRignBeginTime != null and params.endRignBeginTime != '' "> and q.rign_begin_time <![CDATA[ <= ]]>  CONCAT(#{params.endRignBeginTime},' 23:59:59')</if>
+            <if test="state != null  and state != ''"> and state = #{state}</if>
+            <if test="params.beginCtime != null and params.beginCtime != '' "> and q.ctime >= #{params.beginCtime}</if>
+            <if test="params.endCtime != null and params.endCtime != '' "> and q.ctime <![CDATA[ <= ]]>  CONCAT(#{params.endCtime},' 23:59:59')</if>
+            <if test="creator != null  and creator != ''"> and q.creator = #{creator}</if>
+            <if test="isDelete != null  and isDelete != ''"> and q.is_delete = #{isDelete}</if>
+            <if test="price != null  and price != ''"> and q.price = #{price}</if>
+        </where>
+    </select>
+
+    <select id="selectTExamList" parameterType="TExam" resultMap="TExamResult">
+        <include refid="selectTExamVo"/>
+        <where>  
+            <if test="examTitle != null  and examTitle != ''"> and exam_title like concat('%', #{examTitle}, '%')</if>
+            <if test="levelId != null "> and q.level_id = #{levelId}</if>
+            <if test="examMode != null  and examMode != ''"> and exam_mode = #{examMode}</if>
+            <if test="subjectId != null "> and q.subject_id = #{subjectId}</if>
+            <if test="beginTime != null "> and begin_time = #{beginTime}</if> 
+            <if test="params.beginBeginTime != null and params.beginBeginTime != '' "> and q.begin_time >= #{params.beginBeginTime}</if>
+            <if test="params.endBeginTime != null and params.endBeginTime != '' "> and q.argue_end_time <![CDATA[ <= ]]>  CONCAT(#{params.endBeginTime},' 23:59:59')</if>
+            <if test="params.beginRignBeginTime != null and params.beginRignBeginTime != '' "> and q.rign_begin_time >= #{params.beginRignBeginTime}</if>
+            <if test="params.endRignBeginTime != null and params.endRignBeginTime != '' "> and q.rign_begin_time <![CDATA[ <= ]]>  CONCAT(#{params.endRignBeginTime},' 23:59:59')</if>
+            <if test="state != null  and state != ''"> and state = #{state}</if>
+            <if test="params.beginCtime != null and params.beginCtime != '' "> and q.ctime >= #{params.beginCtime}</if>
+            <if test="params.endCtime != null and params.endCtime != '' "> and q.ctime <![CDATA[ <= ]]>  CONCAT(#{params.endCtime},' 23:59:59')</if>
+            <if test="creator != null  and creator != ''"> and q.creator = #{creator}</if>
+            <if test="isDelete != null  and isDelete != ''"> and q.is_delete = #{isDelete}</if>
+            <if test="price != null  and price != ''"> and q.price = #{price}</if>
+            <if test="uid != null  and uid != ''"> and q.uid = #{uid}</if>
+        </where>
+    </select>
+    
+    <select id="selectTExamById" parameterType="Long" resultMap="TExamResult">
+        <include refid="selectTExamVo"/>
+        where exam_id = #{examId}
+    </select>
+        
+    <insert id="insertTExam" parameterType="TExam" useGeneratedKeys="true" keyProperty="examId">
+        insert into t_exam
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="examTitle != null  and examTitle != ''">exam_title,</if>
+            <if test="levelId != null ">level_id,</if>
+            <if test="examMode != null  and examMode != ''">exam_mode,</if>
+            <if test="subjectId != null ">subject_id,</if>
+            <if test="examClaim != null  and examClaim != ''">exam_claim,</if>
+            <if test="beginTime != null ">begin_time,</if>
+            <if test="endTime != null ">end_time,</if>
+            <if test="operateBeginTime != null ">operate_begin_time,</if>
+            <if test="operateEndTime != null ">operate_end_time,</if>
+            <if test="argueBeginTime != null ">argue_begin_time,</if>
+            <if test="argueEndTime != null ">argue_end_time,</if>
+            <if test="rignBeginTime != null ">rign_begin_time,</if>
+            <if test="rignEndTime != null ">rign_end_time,</if>
+            <if test="paperId != null ">paper_id,</if>
+            <if test="state != null  and state != ''">state,</if>
+            <if test="ctime != null ">ctime,</if>
+            <if test="creator != null  and creator != ''">creator,</if>
+            <if test="isDelete != null  and isDelete != ''">is_delete,</if>
+            <if test="price != null  and price != ''">price,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="examTitle != null  and examTitle != ''">#{examTitle},</if>
+            <if test="levelId != null ">#{levelId},</if>
+            <if test="examMode != null  and examMode != ''">#{examMode},</if>
+            <if test="subjectId != null ">#{subjectId},</if>
+            <if test="examClaim != null  and examClaim != ''">#{examClaim},</if>
+            <if test="beginTime != null ">#{beginTime},</if>
+            <if test="endTime != null ">#{endTime},</if>
+            <if test="operateBeginTime != null ">#{operateBeginTime},</if>
+            <if test="operateEndTime != null ">#{operateEndTime},</if>
+            <if test="argueBeginTime != null ">#{argueBeginTime},</if>
+            <if test="argueEndTime != null ">#{argueEndTime},</if>
+            <if test="rignBeginTime != null ">#{rignBeginTime},</if>
+            <if test="rignEndTime != null ">#{rignEndTime},</if>
+            <if test="paperId != null ">#{paperId},</if>
+            <if test="state != null  and state != ''">#{state},</if>
+            <if test="ctime != null ">#{ctime},</if>
+            <if test="creator != null  and creator != ''">#{creator},</if>
+            <if test="isDelete != null  and isDelete != ''">#{isDelete},</if>
+            <if test="price != null  and price != ''">#{price},</if>
+         </trim>
+    </insert>
+
+    <update id="updateTExam" parameterType="TExam">
+        update t_exam
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="examTitle != null  and examTitle != ''">exam_title = #{examTitle},</if>
+            <if test="levelId != null ">level_id = #{levelId},</if>
+            <if test="examMode != null  and examMode != ''">exam_mode = #{examMode},</if>
+            <if test="subjectId != null ">subject_id = #{subjectId},</if>
+            <if test="examClaim != null  and examClaim != ''">exam_claim = #{examClaim},</if>
+            <if test="beginTime != null ">begin_time = #{beginTime},</if>
+            <if test="endTime != null ">end_time = #{endTime},</if>
+            <if test="rignBeginTime != null ">rign_begin_time = #{rignBeginTime},</if>
+            <if test="rignEndTime != null ">rign_end_time = #{rignEndTime},</if>
+            <if test="paperId != null ">paper_id = #{paperId},</if>
+            <if test="state != null  and state != ''">state = #{state},</if>
+            <if test="ctime != null ">ctime = #{ctime},</if>
+            <if test="creator != null  and creator != ''">creator = #{creator},</if>
+            <if test="isDelete != null  and isDelete != ''">is_delete = #{isDelete},</if>
+            <if test="uid != null  and uid != ''">uid = #{uid},</if>
+            <if test="operateBeginTime != null ">operate_begin_time = #{operateBeginTime},</if>
+            <if test="operateEndTime != null ">operate_end_time = #{operateEndTime},</if>
+            <if test="argueBeginTime != null ">argue_begin_time = #{argueBeginTime},</if>
+            <if test="argueEndTime != null ">argue_end_time = #{argueEndTime},</if>
+            <if test="price != null  and price != ''">price = #{price},</if>
+        </trim>
+        where exam_id = #{examId}
+    </update>
+
+    <delete id="deleteTExamById" parameterType="Long">
+        delete from t_exam where exam_id = #{examId}
+    </delete>
+
+    <delete id="deleteTExamByIds" parameterType="String">
+        delete from t_exam where exam_id in
+        <foreach item="examId" collection="array" open="(" separator="," close=")">
+            #{examId}
+        </foreach>
+    </delete>
+    
+</mapper>

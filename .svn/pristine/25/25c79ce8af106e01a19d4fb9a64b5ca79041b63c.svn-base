@@ -1,0 +1,121 @@
+package com.ruoyi.project.system.student.service.impl;
+
+import java.util.List;
+import com.ruoyi.project.system.student.domain.StudentLevel;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import com.ruoyi.project.system.student.mapper.StudentMapper;
+import com.ruoyi.project.system.student.domain.Student;
+import com.ruoyi.project.system.student.service.IStudentService;
+import com.ruoyi.common.utils.text.Convert;
+
+/**
+ * 学员Service业务层处理
+ * 
+ * @author ruoyi
+ * @date 2020-06-05
+ */
+@Service
+public class StudentServiceImpl implements IStudentService 
+{
+    @Autowired
+    private StudentMapper studentMapper;
+
+    /**
+     * 查询学员
+     * 
+     * @param studentId 学员ID
+     * @return 学员
+     */
+    @Override
+    public Student selectStudentById(Long studentId)
+    {
+        return studentMapper.selectStudentById(studentId);
+    }
+
+    /**
+     * 查询学员列表
+     * 
+     * @param student 学员
+     * @return 学员
+     */
+    @Override
+    public List<Student> selectStudentList(Student student)
+    {
+        return studentMapper.selectStudentList(student);
+    }
+
+    /**
+     * 新增学员
+     * 
+     * @param student 学员
+     * @return 结果
+     */
+    @Override
+    public int insertStudent(Student student)
+    {
+        return studentMapper.insertStudent(student);
+    }
+
+    /**
+     * 修改学员
+     * 
+     * @param student 学员
+     * @return 结果
+     */
+    @Override
+    public int updateStudent(Student student)
+    {
+        return studentMapper.updateStudent(student);
+    }
+
+    /**
+     * 删除学员对象
+     * 
+     * @param ids 需要删除的数据ID
+     * @return 结果
+     */
+    @Override
+    public int deleteStudentByIds(String ids)
+    {
+        return studentMapper.deleteStudentByIds(Convert.toStrArray(ids));
+    }
+
+    /**
+     * 删除学员信息
+     * 
+     * @param studentId 学员ID
+     * @return 结果
+     */
+    @Override
+    public int deleteStudentById(Long studentId)
+    {
+        return studentMapper.deleteStudentById(studentId);
+    }
+
+    @Override
+    public int updateWeChatIdByStudent(Student student) {
+        return studentMapper.updateWeChatIdByStudent(student);
+    }
+
+    @Override
+	public Student selectUserById(Long userId) {
+		return studentMapper.selectUserById(userId);
+	}
+	
+	public int updateFaceTokenByStudent(Student student) {
+		return studentMapper.updateFaceTokenByStudent(student);
+	}
+
+    public Student selectStudentByWeChatId(Student student){
+        return studentMapper.selectStudentByWeChatId(student);
+    }
+
+    public Student selectStudentByMobile(String mobile){
+        return studentMapper.selectStudentByMobile(mobile);
+    }
+
+    public StudentLevel selectStudentLevel(StudentLevel studentLevel){
+        return studentMapper.selectStudentLevel(studentLevel);
+    }
+}

@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org" xmlns:shiro="http://www.pollix.at/thymeleaf/shiro">
+<head>
+    <th:block th:include="include :: header('考试人脸验证')" />
+</head>
+<body class="gray-bg">
+
+	<div class="video_canvas">
+		<video id="video" width="500" height="500"></video>
+		<img class="video" id="img" src="">
+		<canvas id="canvas" width="500" height="500" hidden></canvas>
+	</div>
+	<div class="confirm">
+		<a id="snap" class="btn btn-primary btn-rounded .btn-lg"><i class="fa fa-camera"></i>&nbsp;&nbsp;&nbsp;点&nbsp;击&nbsp;验&nbsp;证</a>
+	</div>
+    
+    <th:block th:include="include :: footer" />
+    <script th:inline="javascript">
+    	var prefix = ctx + "student/exam";
+    	var examId = [[${examId}]];
+    	var error = [[${error}]];
+    	
+    	$(function() {
+    		//检查是否有异常信息
+    		if(!error){
+            	$.modal.msgError("人脸校验失败");
+        	}
+    		
+    		//用来匹配不同的浏览器
+    		function getUserMedia(constraints,success,error){
+    			if(navigator.mediaDevices.getUserMedia){
+    				navigator.mediaDevices.getUserMedia(constraints).then(success).catch(error);
+    			}else if (navigator.webkitGetUserMedia) {
+    				navigator.webkitGetUserMedia(constraints,success,error);
+    			}else if (navigator.mozGetUserMedia) {
+    				navigator.mozGetUserMedia(constraints,success,error);
+    			}else if (navigator.getUserMedia) {
+    				navigator.getUserMedia(constraints,success,error)
+    			}
+    		}
+    		
+    		let video = document.getElementById('video');
+    		let canvas = document.getElementById('canvas');
+    		let context = canvas.getContext('2d');
+    		//成功回调
+    		function success(stream){
+    			video.srcObject = stream;
+    			video.play();
+    			video.close();
+    		}
+    		//失败回调
+    		function error(error) {
+    			console.log("访问用户媒体失败");
+    		}
+    		//开启摄像头
+    		if (navigator.mediaDevices.getUserMedia || navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia) {
+    			getUserMedia({video:{width:500,height:500}},success,error)
+    		}else {
+    			alert("不支持");
+    		}
+    		//实现拍照的功能
+    		document.getElementById('snap').addEventListener('click',function(){
+    			context.drawImage(video,0,0,500,500);
+    			imgData = canvas.toDataURL();
+    			var photo = imgData.substr(22);
+    			$("#img").attr("src","data:image/png;base64,"+ photo);
+    			video.remove();
+    			$.modal.loading("正在校验，请稍后...");
+    		});
+    		
+    		
+    	});
+    	
+    </script>
+</body>
+
+<style>
+
+	.video_canvas{
+		text-align: center;
+    	margin-top: 50px;
+	}
+	
+	video,canvas,.video{
+		width: 25% !important;
+		border-radius: 200px;
+	}
+	
+	.confirm{
+		margin-top: 20px;
+		text-align: center;
+	}
+	
+</style>
+
+</html>

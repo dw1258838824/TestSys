@@ -1,0 +1,8 @@
+package com.ruoyi.project.system.api.service;
+
+import org.springframework.stereotype.Service;
+
+@Service
+public class WeChatService {
+
+}

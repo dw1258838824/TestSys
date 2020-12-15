@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org" xmlns:shiro="http://www.pollix.at/thymeleaf/shiro">
+<head>
+    <th:block th:include="include :: header('在线笔试')" />
+</head>
+<body class="gray-bg">
+
+     <div class="container-div" id="bsDiv">
+        <div class="row">
+            <div class="exam-show-list">
+                <div id="showExam" class="exam exam-list"></div>
+            </div>
+        </div>
+    </div>
+	
+    <th:block th:include="include :: footer" />
+    <script th:inline="javascript">
+    	var prefix = ctx + "student/exam";
+    	var res = [[${res}]];
+    	var questionList = [[${questionList}]];
+    	var xml = [[${exam.params.paperDoc}]];
+    	var examBeginTime = [[${exam.beginTime}]];
+    	var roles = [[${roles}]];
+    	var isTeacher = false;
+    	$(function() {
+    		for(var z = 0; z < roles.length ; z++){
+	   			if(roles[z].roleId == 102){//如果为老师
+	   				isTeacher = true;
+	   			}
+    		}
+    		$("#showExam").html(scoreHtml());
+    	});
+    	function getStudentAnswer(questionId){
+			for(var i=0 ; i<questionList.length ; i++){
+    			if(questionList[i].questionId == questionId){
+    				return questionList[i].studentAnswer;
+    			}
+    		}
+			return "";
+    	}
+    	function getStudentScore(questionId){
+			for(var i=0 ; i<questionList.length ; i++){
+    			if(questionList[i].questionId == questionId){
+    				if(questionList[i].studentScore){
+	    				return questionList[i].studentScore;
+    				}else{
+    					return 0;
+    				}
+    			}
+    		}
+			return 0;
+    	}
+    	function getRecordId(questionId){
+			for(var i=0 ; i<questionList.length ; i++){
+    			if(questionList[i].questionId == questionId){
+    				return questionList[i].recordId;
+    			}
+    		}
+			return 0;
+    	}
+    	function scoreHtml(){
+    		var questions = $(xml).find("question");
+    		var paperTitle = $(xml).find("paperTitle").text();
+    		var allScore = $(xml).find("allScore").text();
+    		var htmlStr = "<form id='examForm' action='submitexam' method='post'  autocomplete='off'  enctype='multipart/form-data'><center><h1>"+paperTitle+"</h1>总分："+allScore+"分 &nbsp; 得分：@@@score@@@分</center>";
+    		var typeName = "";
+    		var typeCount = 0;
+    		var typeScore = 0;
+    		var titleHIdx = 0;
+    		var allScore = 0;
+    		for(var s=0 ;s<questions.length; s++){
+    			var littleXml = $(questions[s]);
+    			var typeId = $(littleXml).find("typeId").text();
+    			var questionTypeName = $(littleXml).find("questionType").text();//题型名称
+    			var questionCount = parseInt($(littleXml).find("questionCount").text());//题型数量
+    			var questionId = parseInt($(littleXml).find("questionId").text());//题目ID
+    			var score = parseFloat($(littleXml).find("score").text()); //题目分数
+    			var answer = $(littleXml).find("answer").text(); 
+    			var titleFileBase64 = $(littleXml).find("titleFileBase64").text(); //标题
+    			var titStr = '';
+    			if(isNotEmpty(titleFileBase64)){
+    				titStr = '<img width="500px" src="'+titleFileBase64+'" />';
+    			}
+    			var typeMode = $(littleXml).find("typeMode").text();//题型模式 0实操 1笔试 2答辩
+    			var questionTitle = $(littleXml).find("questionTitle").text(); //标题
+				var choseval = getStudentAnswer(questionId);
+    			if(typeMode == "1"){//笔试题
+    				if(typeName != questionTypeName){
+    					typeName = questionTypeName;
+    					typeCount = questionCount;
+    					typeScore = score;
+    					htmlStr += "<h2>"+titleH[titleHIdx]+"、"+typeName+"（共"+typeCount+"道题，每题"+typeScore+"分）</h2>";
+    					titleHIdx ++;
+    				}
+    				
+    				var ifRadio = $(littleXml).find("questionRadio").length; //单选
+    				var ifCheckBox = $(littleXml).find("questionCheckBox").length; //多选
+    				var ifFile = $(littleXml).find("questionFile").length;//答辩文件
+    				var options = $(littleXml).find("options").length; //选项个数
+    				var codes = $(littleXml).find("options").find("code");//选项编号
+    				var contexts = $(littleXml).find("options").find("context");//选项
+    				var optionimg = $(littleXml).find("options").find("optionimg");//图片
+    				
+    				var dxstr = "";
+    				if(questionTypeName.indexOf("多选")>-1){
+    					dxstr = "(选择"+answer.split(',').length+"项)";
+    				}
+    				
+    				htmlStr += '<div class="form-group"><p class="form-control-static">'+(s+1)+'：'+questionTitle+dxstr+'('+score+'分)'+'</p>'+titStr+'</div>';
+    				htmlStr += '<input type="hidden" name="questionId'+(s+1)+'" value='+questionId+' />';
+    				if(ifRadio>0){
+    					htmlStr += '<div class="form-group">';
+    					for(var i=0; i<options ; i++){
+    						var img = "";
+    						if(isNotEmpty($(optionimg[i]).text())){
+    							img = "<br/><img width='120px' src='"+$(optionimg[i]).text()+"' />";
+    						}
+    						var checked = "";
+    						if(choseval == $(codes[i]).text()){
+    							checked = " checked ";
+    						}
+    						htmlStr +=
+    							"<div class=\"radio\"> "+
+    							"	<label> "+
+    							"		<input type=\"radio\" "+checked+" value=\""+$(codes[i]).text()+"\"  name=\"questionVal"+(s+1)+"\"> " +$(codes[i]).text()+ "：" + $(contexts[i]).text() + img +
+    							"	</label> "+
+    							"</div> ";
+    					}
+    					htmlStr += '</div>';
+    					ifInput = false;
+    				}else if(ifCheckBox>0){
+    					htmlStr += '<div class="form-group">';
+    					for(var i=0; i<options ; i++){
+    						var img = "";
+    						if(isNotEmpty($(optionimg[i]).text())){
+    							img = "<br/><img width='120px' src='"+$(optionimg[i]).text()+"' />";
+    						}
+    						var checked = "";
+    						if(choseval.indexOf($(codes[i]).text())>-1){
+    							checked = " checked ";
+    						}
+    						htmlStr += 
+    							"<div class=\"radio cbox\"> "+
+    							"	<label> "+
+    							"		<input  type=\"checkbox\" "+checked+" value=\""+$(codes[i]).text()+"\"  name=\"questionChecks"+(s+1)+"no"+i+"\"> " +$(codes[i]).text()+ "：" + $(contexts[i]).text() + img +
+    							"	</label> "+
+    							"</div> ";
+    					}
+    					htmlStr += '<input type=\"hidden\" id=\"questionVal'+(s+1)+'\" name=\"questionVal'+(s+1)+'\" / > ';
+    					htmlStr += '</div>';
+    					ifInput = false;
+    				}else if(typeId == "4"){
+    					var count = ((questionTitle.split('(')).length-1) + ((questionTitle.split('（')).length-1);
+    					var vals = choseval.split('###');
+    					for(var i=1;i<=count;i++){
+    						htmlStr += '<div class="form-group">' +
+    						'		<input type=\"text\" class=\"form-control tkt'+(s+1)+'\" name=\"questionVals'+(s+1)+'no'+i+'\" value=\"'+vals[i-1]+'\" placeholder=\"问题'+i+'\" / > ' +
+    						'</div>';
+    					}
+    					htmlStr += '<input type=\"hidden\" id=\"questionVal'+(s+1)+'\" name=\"questionVal'+(s+1)+'\" / > ';
+    					
+    				}else if(typeId == "6"){//scratch编程题
+    					htmlStr +=	'<div class="form-group"> '+
+    										'<a href="https://scratch.mit.edu/projects/editor/" target="_blank"><i class="fa fa-hand-pointer-o"></i> scratch官网</a><br/>'+
+    										'<a href="http://47.93.241.224:8080/files/scratch/' + choseval+ '" target="_blank"><i class="fa fa-hand-pointer-o"></i> '+ choseval +'</a><br/>'+
+    								'</div>';
+
+    				}else{//问答题、pyton编程
+    					htmlStr +=	'<div class="form-group">' +
+    					'		<textarea class="form-control" name=\"questionVal'+(s+1)+'\" >'+ choseval +'</textarea>' +
+    					'</div>';
+    				}
+    				var color = "green";
+        			if(answer == '' || answer != choseval){
+        				color = "red";
+        			}
+        			if(!answer){
+        				answer = "无(主观题)";
+        				
+        			}
+        			htmlStr += "<br/><font color='"+color+"'>标准答案：" + answer + " &nbsp; &nbsp; 得分：" + getStudentScore(questionId) + "</font>";
+    			}else if(typeMode == "2" ){//答辩题
+    				htmlStr += '<div class="form-group"><p class="form-control-static">答辩题：'+questionTitle+'('+score+'分)'+'</p>'+titStr+'</div>';
+    				htmlStr += '<input type="hidden" name="questionId'+(s+1)+'" value='+questionId+' />';
+    				htmlStr += '<script>function speekTitle(){const msg = new SpeechSynthesisUtterance("答辩题，请听题：'+questionTitle+'"); window.speechSynthesis.speak(msg);}<\/script>';
+    				htmlStr += '<a href="javascript:speekTitle()"><i class="fa fa-volume-down"></i> 重新听题</a><br/>';
+    				if(res.argueBeginTime){
+	    				htmlStr += '<a class="btn btn-success btn-xs " href="javascript:checkReply(\''+res.params.courseid+'\',\''+res.params.classid+'\')" ><i class="fa fa-caret-square-o-right"></i>回放</a>';
+	    				htmlStr += '开始答辩时间为回放中的第' + getStudentAnswer(questionId) + '分钟';
+    				}else{
+    					htmlStr += '未参与答辩 ';
+    				}
+        			htmlStr += "<br/>当前得分：" + getStudentScore(questionId) + "</font>";
+    				
+    			}else if(typeMode == "0" ){//实操题
+    				htmlStr += '<div class="form-group"><p class="form-control-static">实操题：'+questionTitle+'('+score+'分)'+'</p>'+titStr+'</div><br/>';
+    				htmlStr += '<input type="hidden" name="questionId'+(s+1)+'" value='+questionId+' />';
+    				if(res.argueBeginTime){
+    					htmlStr += '<a class="btn btn-success btn-xs " href="javascript:checkReply(\''+res.params.courseid+'\',\''+res.params.classid+'\')" ><i class="fa fa-caret-square-o-right"></i>回放</a>';
+    					htmlStr += '开始实操时间为回放中的第' + getStudentAnswer(questionId) + '分钟';
+    				}else{
+    					htmlStr += '未参与实操 ';
+    				}
+        			htmlStr += "<br/>当前得分：" + getStudentScore(questionId) + "</font>";
+    			}
+    			
+    			allScore += getStudentScore(questionId);
+    			if(isTeacher){
+    				htmlStr +=  "<br/><font >修改分数： <input type='number' value='"+getStudentScore(questionId)+"' onchange='changeScore(this,"+getRecordId(questionId)+")' />";
+    			}
+    			htmlStr += "<hr/>";
+    		}
+    		htmlStr += "</form>";
+    		htmlStr = htmlStr.replace('@@@score@@@',allScore);
+    		return htmlStr;
+    	}
+    	function changeScore(ele,recordId){
+    		 var score = $(ele).val();
+    		 if(score){
+	    		 $.post(prefix + "/updateScore",{recordId:recordId,studentScore:score},function(result){
+	 				if(result=="success"){
+	 					$.modal.alert("修改成功,请稍后刷新页面");
+	 				}else{
+	 					$.modal.alert("修改失败,请确认该学员是否参该阶段的考试");
+	 				}
+	 			});
+    		 }
+    	}
+    </script>
+</body>
+
+<style>
+	.exam-show-list {
+    	width: 100%;
+	    background: #fff;
+	    border-radius: 6px;
+	    margin-top: 10px;
+	    margin-bottom: 10px;
+	    padding-top: 5px;
+	    padding-bottom: 13px;
+	    padding-left: 100px;
+	    box-shadow: 1px 1px 3px rgba(0,0,0,.2);
+	    overflow: auto;
+	}
+	
+	.exam{
+		float: left;
+	}
+	
+	.form-control-static {
+	    font-size: 18px;
+	    font-weight: 600;
+	}
+	
+	.form-group .radio{
+		font-size: 15px;
+		margin-bottom: 15px;
+	}
+	
+	.exam-list{
+		width: 97%;
+	}
+	
+	
+</style>
+
+</html>

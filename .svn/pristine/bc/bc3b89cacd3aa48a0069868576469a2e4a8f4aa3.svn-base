@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org" >
+<head>
+    <th:block th:include="include :: header('修改题库')" />
+</head>
+<body class="white-bg">
+    <div class="wrapper wrapper-content animated fadeInRight ibox-content">
+        <form class="form-horizontal m" id="form-question-edit" th:object="${tQuestion}">
+            <input name="questionId" th:field="*{questionId}" type="hidden">
+            <div class="form-group">    
+                <label class="col-sm-3 control-label">题目类型：</label>
+                <div class="col-sm-8">
+                	<input id="questionTypeIdv" type="hidden"  th:value="*{questionTypeId}" />
+                    <select name="questionTypeId" id="questionTypeId" class="form-control m-b" required>
+                    </select>
+                </div>
+            </div>
+            <div id="questionDiv" class="questionDiv">
+	            <div class="form-group">    
+	                <label class="col-sm-3 control-label is-required">题目标题：</label>
+	                <div class="col-sm-8">
+	                    <textarea id="questionTitle" name="questionTitle" class="form-control" required>[[*{questionTitle}]]</textarea>
+	                    <a onclick="$(this).next().click()" id="btnTitle"><i class="fa fa-file-image-o"></i> 选择图片</a>
+		                <input type="file" id="titleFile" accept="image/*"  class="hide" onchange="chooseImg(this,'titleFileBase64','btnTitle')">
+		                <input type="hidden" id="titleFileBase64" name="titleFileBase64" />
+	                </div>
+	            </div>
+            </div>
+            <div class="form-group hide">    
+                <label class="col-sm-3 control-label">题目内容：</label>
+                <div class="col-sm-8">
+                    <input name="questionHtml" th:field="*{questionHtml}" class="form-control" type="text">
+                    <input id="xml" th:value="*{questionHtml}" type="hidden" >
+                </div>
+            </div>
+            <div class="form-group">    
+                <label class="col-sm-3 control-label">题目答案：</label>
+                <div class="col-sm-8">
+                    <input name="questionAnswer" th:field="*{questionAnswer}" class="form-control" type="text" onblur="replaceStrs(this)" onkeyup="replaceStrs(this)">
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-3 control-label">答案解析：</label>
+                <div class="col-sm-8">
+                    <textarea name="questionAnswerAnalysis" id="questionAnswerAnalysis" class="form-control"  onblur="replaceStrs(this)" onkeyup="replaceStrs(this)">[[*{questionAnswerAnalysis}]]</textarea>
+                </div>
+            </div>
+            <div class="form-group">    
+                <label class="col-sm-3 control-label">等级：</label>
+                <div class="col-sm-8">
+                	<input id="levelIdv" type="hidden"  th:value="*{levelId}" />
+                    <select name="levelId" class="form-control m-b" required>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group">    
+                <label class="col-sm-3 control-label">科目：</label>
+                <div class="col-sm-8">
+                	<input id="subjectIdv" type="hidden"  th:value="*{subjectId}" />
+                    <select name="subjectId" class="form-control m-b">
+                    </select>
+                </div>
+            </div>
+            <div class="form-group">    
+                <label class="col-sm-3 control-label">知识点：</label>
+                <div class="col-sm-8">
+                	<input id="questionPointIdv" type="hidden"  th:value="*{questionPointId}" />
+                    <select name="questionPointId" class="form-control m-b">
+                    </select>
+                </div>
+            </div>
+        </form>
+    </div>
+    <th:block th:include="include :: footer" />
+    <script type="text/javascript">
+        var prefix = ctx + "system/question";
+        $("#form-question-edit").validate({
+            focusCleanup: true
+        });
+        function submitHandler() {
+            if ($.validate.form()) {
+            	getHtml();
+                $.operate.save(prefix + "/edit", $('#form-question-edit').serialize());
+            }
+        }
+
+        function getHtml(){//获取题目内容
+        	var questionTitle = $("#questionTitle").val();
+        	var options = '<question><questionTitle>'+questionTitle+'</questionTitle>';
+    			options += '<titleFileBase64>'+$("#titleFileBase64").val()+'</titleFileBase64>';
+        	var idx = 0;
+        	if(($("#questionTypeId").val() == 1 || $("#questionTypeId").val() == 3) && $(".radioCode").length > 0){//单选题、判断题
+            	options += "<questionRadio>";
+            	$(".radioCode").each(function(){
+            		var optionCode = $(this).val();
+            		var optionCentext = $($(".radioCentext")[idx]).val();
+            		var optionImgBase64 = $($(".optionImgBase64")[idx]).val();
+            		options += "<options><code>"+optionCode+"</code><context>"+optionCentext+"</context><optionimg>"+optionImgBase64+"</optionimg></options>";
+            		idx ++;
+            	});
+            	options += "</questionRadio>";
+        	}else if($("#questionTypeId").val() == 2 && $(".boxCode").length > 0){//多选题
+        		options += "<questionCheckBox>";
+            	$(".boxCode").each(function(){
+            		var optionCode = $(this).val();
+            		var optionCentext = $($(".boxCentext")[idx]).val();
+            		var optionImgBase64 = $($(".optionImgBase64")[idx]).val();
+            		options += "<options><code>"+optionCode+"</code><context>"+optionCentext+"</context><optionimg>"+optionImgBase64+"</optionimg></options>";
+            		idx ++;
+            	});
+            	options += "</questionCheckBox>";
+        	}else if($("#questionTypeId").val() == 6 && $("#questionFile")){
+        		options += "<questionFile>"+$("#questionFile").val()+"</questionFile>";
+        	}
+        	options += "<answer>"+$("#questionAnswer").val()+"</answer><answerAnalysis>"+$("#questionAnswerAnalysis").val()+"</answerAnalysis><score>@score@</score></question>";
+        	$("#questionHtml").val(options);
+        }
+        //xml转换为编辑时的html  ele为类型下拉列表元素
+        function xmltoEditHtml(typeId){
+        	var modeHtml = $("#questionDiv").html();
+        	var xml = $("#xml").val();
+        	var questionTitle = $(xml).find("questionTitle").text();
+        	var titleFileBase64 = $(xml).find("titleFileBase64").text();
+        	$("#questionTitle").val(questionTitle);
+        	$("#titleFileBase64").val(titleFileBase64);
+        	if(titleFileBase64)
+        		$("#btnTitle").before('<a onclick="showBase64Img(this)"><i class="fa fa-eye"></i> 查看图片</a> &nbsp;&nbsp;');
+        	
+        	var options = $(xml).find("options").find("context");//选项
+        	var optionimgs = $(xml).find("options").find("optionimg");//选项
+        	if(options.length>0){
+        		if($(".radioCentext").length>0 && typeId != 3){
+        			for(var i=0;i<options.length;i++){
+        				$($(".radioCentext")[i]).val($(options[i]).text());
+        				$($(".optionImgBase64")[i]).val($(optionimgs[i]).text());
+        				if($(optionimgs[i]).text()!=""){
+		       				$("#btn"+letter[i]).before('<a onclick="showBase64Img(this)"><i class="fa fa-eye"></i> 查看图片</a> &nbsp;&nbsp;');
+        				}
+        			}
+        		}else if($(".boxCentext").length>0){
+        			for(var i=0;i<options.length;i++){
+        				$($(".boxCentext")[i]).val($(options[i]).text());
+        				$($(".optionImgBase64")[i]).val($(optionimgs[i]).text());
+        				if($(optionimgs[i]).text()!=""){
+		       				$("#btn"+letter[i]).before('<a onclick="showBase64Img(this)"><i class="fa fa-eye"></i> 查看图片</a> &nbsp;&nbsp;');
+        				}
+        			}
+        		}
+        	}
+        	if(options.length>4){
+        		var beyond = options.length - 4;
+        		for(var i=0 ;i<beyond;i++){
+        			if($(".radioCentext").length>0 && typeId != 3){
+        				addOption($("a")[1]);
+            			$($(".radioCentext")[i+4]).val($(options[i+4]).text());
+            		}else if($(".boxCentext").length>0){
+            			addOption($("a")[1]);
+            			$($(".boxCentext")[i+4]).val($(options[i+4]).text());
+            		}
+        		}
+        	}
+        	var ifFile = $(xml).find("questionFile").length;//答辩文件
+        	if(ifFile>0){
+        		$("#questionFile").val($(xml).find("questionFile").text());
+        	}
+        }
+        function showBase64Img(btna){
+        	var imgBase64 = $(btna).next().next().next().val();
+        	$.modal.alert("<img width='300px' src='"+imgBase64+"' />");
+        }
+        $(function(){
+        	initTypeList("questionTypeId", $("#questionTypeIdv").val());
+        	initLevelList("levelId",$("#levelIdv").val());
+        	initSubjectList("subjectId",$("#subjectIdv").val());
+        	initPointList("questionPointId",$("#questionPointIdv").val());
+        	
+        	$("select[name='questionTypeId']").change(function(){
+            	$("#questionHtml").val("");
+            	var index = parseInt($(this).find("option:selected").attr("lang"));
+            	if(index>=0){
+            		$("#questionDiv").html(typeHtmlList[index]);
+            	}else{
+            		$("#questionDiv").html("");
+            	}
+            	xmltoEditHtml($(this).val());
+             });
+             $(".radioCentext,#questionTitle").keyup(function(){
+             	replaceHtml(this,"[<,>]");
+             });
+             $(".radioCentext,#questionTitle").blur(function(){
+             	replaceHtml(this,"[<,>]");
+             });
+
+         	
+        })
+    </script>
+</body>
+</html>

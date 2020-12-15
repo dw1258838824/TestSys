@@ -1,0 +1,31 @@
+package com.testsys.utils;
+
+import java.util.Map;
+
+import com.alibaba.fastjson.JSONObject;
+import com.google.common.collect.Maps;
+import com.ruoyi.common.utils.HttpUtils;
+
+public class ClassInUtils {
+	
+	
+	public static void main(String[] args) {
+		Map<String, String> params = Maps.newHashMap();
+		params.put("SID", "23071866");
+		params.put("safeKey", "692631e01260a89f0fda23cedbce1534");
+		params.put("timeStamp", "1593586224");
+		params.put("telephone", "18038081947");
+		params.put("nickname", "大佬啊");
+		params.put("password", "123456");
+		params.put("addToSchoolMember", "2");
+		String json=  HttpUtils.URLPost("https://api.eeo.cn/partner/api/course.api.php?action=register", params, "UTF-8");
+		JSONObject obj = JSONObject.parseObject(json);
+    	Integer errno = obj.getJSONObject("error_info").getInteger("errno");
+    	if(null!=errno && (errno==1 || errno==135)) {//注册成功或者已存在
+    		Long uid = obj.getLong("data");//添加老师获得老师uid
+    		System.out.println(uid);
+    	}else {
+    		System.out.println("错误");
+    	}
+	}
+}

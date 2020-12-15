@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org" >
+<head>
+    <th:block th:include="include :: header('修改学员')" />
+    <th:block th:include="include :: datetimepicker-css" />
+</head>
+<body class="white-bg">
+    <div class="wrapper wrapper-content animated fadeInRight ibox-content">
+        <form class="form-horizontal m" id="form-student-edit" th:object="${student}">
+            <input name="studentId" th:field="*{studentId}" type="hidden">
+            <input name="userId" th:field="*{userId}" type="hidden">
+			<input name="deptId"  type="hidden"  th:value="${user.dept.deptId}" id="treeId"/>
+            <div class="form-group">    
+                <label class="col-sm-3 control-label is-required">学员姓名：</label>
+                <div class="col-sm-8">
+                    <input name="studentName" th:field="*{studentName}" class="form-control" type="text" required >
+                </div>
+            </div>
+            <div class="form-group">    
+                <label class="col-sm-3 control-label is-required">身份证号码：</label>
+                <div class="col-sm-8">
+                    <input name="idcard" th:field="*{idcard}" class="form-control" type="text" required >
+                </div>
+            </div>
+            <div class="form-group">    
+                <label class="col-sm-3 control-label is-required">学员生日：</label>
+                <div class="col-sm-8">
+                    <div class="input-group date">
+                        <span class="input-group-addon"><i class="fa fa-calendar"></i></span>
+                        <input name="birthday" th:value="${#dates.format(student.birthday, 'yyyy-MM-dd')}" class="form-control" placeholder="yyyy-MM-dd" type="text"  required>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">    
+                <label class="col-sm-3 control-label is-required">性别：</label>
+                <div class="col-sm-8">
+                    <select name="sex" class="form-control m-b" th:with="type=${@dict.getType('sys_user_sex')}">
+                        <option th:each="dict : ${type}" th:text="${dict.dictLabel}" th:value="${dict.dictValue}" th:field="*{sex}"></option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group">    
+                <label class="col-sm-3 control-label is-required">监护人：</label>
+                <div class="col-sm-8">
+                    <input name="parentName" th:field="*{parentName}" class="form-control" type="text"  required>
+                </div>
+            </div>
+            <div class="form-group">    
+                <label class="col-sm-3 control-label is-required">监护人手机号：</label>
+                <div class="col-sm-8">
+                    <input name="mobile" th:field="*{mobile}" class="form-control" type="text" required>
+                </div>
+            </div>
+           
+            <div class="form-group">    
+                <label class="col-sm-3 control-label">归属机构：</label>
+                <div class="col-sm-8">
+                     <div class="input-group">
+                         <input class="form-control" type="text" name="deptName" onclick="selectDeptTree()" id="treeName" th:field="${user.dept.deptName}" >
+                     	<span class="input-group-addon"><i class="fa fa-search"></i></span>
+                     </div>
+                 </div>
+            </div>
+          
+            <div class="form-group">
+                 <label class="col-sm-3 control-label is-required">学生两寸证件照：</label>
+                 <div class="col-sm-8">
+                    <input id="idcardImg" name="idcardImg"  type="text"  th:value="*{idcardImg}"  style="width: 0px;line-height: 0px;height: 0px;border: 0px;" readonly="readonly" />
+                    <img id="showidcardImg" style="border:solid 1px red;width: 35mm;height:45mm"  th:src="*{idcardImg}!=null?*{idcardImg}:'/leyu/img/idcardimg.jpg'">
+                 	<img id="showidcardImgTemp" style="display: none" />
+                 	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<div id="idcardImgDiv" class="btn btn-primary">选择图片</div>
+                 	<p><font color="red">红白蓝底皆可，二寸（普通）建议照片尺寸：宽度需在410-415像素，高度575-580像素之间，jpg格式。此照片将是您的准考证照片和证书照片(如通过考试)，请务必按照要求提供！</font></p>
+                 	<input id="idcardfile" name="idcardfile" type="file" accept="image/jpeg" style="left:-9999px;position:absolute;" />
+                 </div>
+            </div>
+            
+            <div class="form-group">    
+                <label class="col-sm-3 control-label">注册时间：</label>
+                <div class="col-sm-8">
+                    <div class="input-group date">
+                        <span class="input-group-addon"><i class="fa fa-calendar"></i></span>
+                        <input name="ctime" disabled th:value="${#dates.format(student.ctime, 'yyyy-MM-dd')}" class="form-control" placeholder="yyyy-MM-dd" type="text">
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+    <th:block th:include="include :: footer" />
+    <th:block th:include="include :: datetimepicker-js" />
+    <script type="text/javascript">
+        var prefix = ctx + "system/student";
+        $("#form-student-edit").validate({
+            focusCleanup: true
+        });
+
+        function submitHandler() {
+        	if($("#showidcardImgTemp").attr("src")!=null){
+		        if($("#showidcardImgTemp").width()<410 || $("#showidcardImgTemp").width()>415 ){
+		        	$.modal.alertError("证件照宽度需在410-415像素，高度575-580像素之间！当前尺寸："+$("#showidcardImgTemp").width() + "x" + $("#showidcardImgTemp").height());
+		        	return;
+		        }
+		        if($("#showidcardImgTemp").height()<575 || $("#showidcardImgTemp").height()>580 ){
+		        	$.modal.alertError("证件照宽度需在410-415像素，高度575-580像素之间！当前尺寸："+$("#showidcardImgTemp").width() + "x" + $("#showidcardImgTemp").height());
+		        	return;
+		        }
+		        var parm = {
+	           		userId: $("#userId").val(),
+	                phonenumber: $("#mobile").val()
+	           	}
+	           	$.post(ctx + "system/user/checkPhoneUnique",parm,function(res){
+	           			if(res==0){
+	                        $.operate.save(prefix + "/edit", $('#form-student-edit').serialize());
+	                    }else{
+	               			$.modal.alertError("该手机号已被使用");
+	           		}
+	           	})
+	        }else{
+	        	$.modal.alertError("请选择证件照");
+	        }
+        }
+
+        $("input[name='birthday']").datetimepicker({
+            format: "yyyy-mm-dd",
+            minView: "month",
+            autoclose: true
+        });
+
+        $("input[name='ctime']").datetimepicker({
+            format: "yyyy-mm-dd",
+            minView: "month",
+            autoclose: true
+        });
+        /*用户管理-修改-选择机构树*/
+        function selectDeptTree() {
+        	var deptId = $.common.isEmpty($("#treeId").val()) ? "100" : $("#treeId").val();
+            var url = ctx + "system/dept/selectDeptTree/" + deptId;
+		    var options = {
+				title: '选择机构',
+				width: "380",
+				url: url,
+				callBack: doSubmit
+			};
+			$.modal.openOptions(options);
+		}
+        function doSubmit(index, layero){
+			var tree = layero.find("iframe")[0].contentWindow.$._tree;
+			if ($.tree.notAllowParents(tree)) {
+    			var body = layer.getChildFrame('body', index);
+    			if(body.find('#treeId').val()=='100'){
+               		$.modal.alert("不能选择顶级机构");
+                }else{
+	    			$("#treeId").val(body.find('#treeId').val());
+	    			$("#treeName").val(body.find('#treeName').val());
+	    			layer.close(index);
+                }
+			}
+		}
+        $("#idcardImgDiv").click(function(){
+	    	$("#idcardfile").trigger("click");
+	    });
+        $("#idcardfile").change(function(){
+	    	var file = this.files[0];
+	        if(!/image\/\w+/.test(file.type)){
+	            $.modal.alertError("文件格式错误，请上传JPG类型图片");
+	            return false;
+	        }
+	        if(file.size > (1048576 * 2)){
+                $.modal.alertError("证件照不能大于2M");
+                return false;
+            }
+	        
+            photoCompress(file, {
+                quality: 1
+            }, function(base64Codes){
+                $("#showidcardImg").attr("src",base64Codes);
+                $("#showidcardImgTemp").attr("src",base64Codes);
+                $("#idcardImg").val(base64Codes);
+            });
+	    });
+        function photoCompress(file,w,objDiv){
+            var ready=new FileReader();
+            /*开始读取指定的Blob对象或File对象中的内容. 当读取操作完成时,readyState属性的值会成为DONE,如果设置了onloadend事件处理程序,则调用之.同时,result属性中将包含一个data: URL格式的字符串以表示所读取文件的内容.*/
+            ready.readAsDataURL(file);
+            ready.onload=function(){
+                var re=this.result;
+                canvasDataURL(re,w,objDiv)
+            }
+        }
+
+        function canvasDataURL(path, obj, callback){
+            var img = new Image();
+            img.src = path;
+            img.onload = function(){
+                var that = this;
+                // 默认按比例压缩
+                var w = that.width,
+                    h = that.height,
+                    scale = w / h;
+                w = obj.width || w;
+                h = obj.height || (w / scale);
+                var quality = 0.7;  // 默认图片质量为0.7
+                //生成canvas
+                var canvas = document.createElement('canvas');
+                var ctx = canvas.getContext('2d');
+                // 创建属性节点
+                var anw = document.createAttribute("width");
+                anw.nodeValue = w;
+                var anh = document.createAttribute("height");
+                anh.nodeValue = h;
+                canvas.setAttributeNode(anw);
+                canvas.setAttributeNode(anh);
+                ctx.drawImage(that, 0, 0, w, h);
+                // 图像质量
+                if(obj.quality && obj.quality <= 1 && obj.quality > 0){
+                    quality = obj.quality;
+                }
+                // quality值越小，所绘制出的图像越模糊
+                var base64 = canvas.toDataURL('image/jpeg', quality);
+                // 回调函数返回base64的值
+                callback(base64);
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.project.system.reg.mapper.TDeptRegMapper">
+    
+    <resultMap type="TDeptReg" id="TDeptRegResult">
+        <result property="deptRegId"    column="dept_reg_id"    />
+        <result property="examId"    column="exam_id"    />
+        <result property="studentId"    column="student_id"    />
+        <result property="deptId"    column="dept_id"    />
+        <result property="operateUserId"    column="operate_user_id"    />
+        <result property="operateTime"    column="operate_time"    />
+        <result property="operateMark"    column="operate_mark"    />
+        <result property="operateState"    column="operate_state"    />
+        <result property="replayUserId"    column="replay_user_id"    />
+        <result property="replayTime"    column="replay_time"    />
+        <result property="replayMark"    column="replay_mark"    />
+        
+        
+        <result property="params.deptName"    column="dept_name"    />
+        <result property="params.examTitle"    column="exam_title"    />
+        <result property="params.rignEndTime"    column="rign_end_time"    />
+        <result property="params.studentName"    column="student_name"    />
+        <result property="params.userId"    column="user_id"    />
+        <result property="params.uid"    column="uid"    />
+        <result property="params.operateUserName"    column="operate_user_name"    />
+        <result property="params.replayUserName"    column="replay_user_name"    />
+    </resultMap>
+
+    <sql id="selectTDeptRegVo">
+        SELECT
+			dept_reg_id,
+			dr.exam_id,
+			dr.student_id,
+			dr.dept_id,
+			operate_user_id,
+			operate_time,
+			operate_mark,
+			operate_state,
+			replay_user_id,
+			replay_time,
+			replay_mark,
+			d.dept_name,
+			e.exam_title,
+			e.rign_end_time,
+			s.student_name,
+			s.user_id,
+			s.uid,
+			u1.user_name operate_user_name,
+			u2.user_name replay_user_name
+		FROM
+			t_dept_reg dr
+		LEFT JOIN t_exam e ON dr.exam_id = e.exam_id
+		LEFT JOIN t_student s ON dr.student_id = s.student_id
+		LEFT JOIN sys_dept d ON d.dept_id = dr.dept_id
+		LEFT JOIN sys_user u1 ON u1.user_id = dr.operate_user_id
+		LEFT JOIN sys_user u2 ON u2.user_id = dr.replay_user_id
+    </sql>
+
+    <select id="selectTDeptRegList" parameterType="TDeptReg" resultMap="TDeptRegResult">
+        <include refid="selectTDeptRegVo"/>
+        <where>  
+            <if test="examId != null "> and dr.exam_id = #{examId}</if>
+            <if test="studentId != null "> and dr.student_id = #{studentId}</if>
+            <if test="deptId != null "> and dr.dept_id = #{deptId}</if>
+            <if test="operateUserId != null "> and dr.operate_user_id = #{operateUserId}</if>
+            <if test="params.beginOperateTime != null and params.beginOperateTime != '' "> and operate_time >= #{params.beginOperateTime} </if>
+            <if test="params.endOperateTime != null and params.endOperateTime != ''"> and operate_time <![CDATA[ <= ]]> concat(#{params.endOperateTime},' 23:59:59')</if>
+            <if test="operateState != null  and operateState != ''"> and operate_state = #{operateState}</if>
+            <if test="replayUserId != null "> and replay_user_id = #{replayUserId}</if>
+            <if test="params.studentName != null and params.studentName != ''  "> and s.student_name like  concat('%',#{params.studentName},'%') </if>
+            <if test="params.operateUserName != null and params.operateUserName != ''  "> and u1.user_name like  concat('%',#{params.operateUserName},'%') </if>
+            <if test="params.replayUserName != null and params.replayUserName != ''  "> and u2.user_name like  concat('%',#{params.replayUserName},'%') </if>
+			<if test="ids != null and ids != ''  ">
+				 and dr.dept_reg_id in
+	        	<foreach item="rId" collection="ids" open="(" separator="," close=")">
+		            #{rId}
+		        </foreach>
+			</if>
+			
+			<!-- 数据范围过滤 -->
+			${params.dataScope}
+        </where>
+        ORDER BY dr.operate_time DESC
+    </select>
+    
+    <select id="selectTDeptRegById" parameterType="Long" resultMap="TDeptRegResult">
+        <include refid="selectTDeptRegVo"/>
+        where dept_reg_id = #{deptRegId}
+    </select>
+        
+    <insert id="insertTDeptReg" parameterType="TDeptReg" >
+        insert into t_dept_reg
+       	(exam_id, student_id, dept_id, operate_user_id, operate_mark )  VALUES
+        <foreach collection="params.studentIds"  index="idx" item="sid"  separator=",">
+        	<foreach collection="params.deptIds"  index="idx2" item="did"  separator=",">
+	        	<if test="sid != null and sid != '' and did != null and did != '' and idx == idx2 "> 
+	        		( #{examId}, #{sid}, #{did}, #{operateUserId}, #{operateMark} )
+	        	</if>
+        	</foreach>
+		</foreach>
+    </insert>
+
+    <update id="updateTDeptReg" parameterType="TDeptReg">
+    	<if test="ids == null ">
+	        update t_dept_reg
+	        <trim prefix="SET" suffixOverrides=",">
+	            <if test="examId != null ">exam_id = #{examId},</if>
+	            <if test="studentId != null ">student_id = #{studentId},</if>
+	            <if test="deptId != null ">dept_id = #{deptId},</if>
+	            <if test="operateUserId != null ">operate_user_id = #{operateUserId},</if>
+	            <if test="operateTime != null ">operate_time = #{operateTime},</if>
+	            <if test="operateMark != null  and operateMark != ''">operate_mark = #{operateMark},</if>
+	            <if test="operateState != null  and operateState != ''">operate_state = #{operateState},</if>
+	            <if test="replayUserId != null ">replay_user_id = #{replayUserId},</if>
+	            <if test="replayTime != null ">replay_time = #{replayTime},</if>
+	            <if test="replayMark != null  and replayMark != ''">replay_mark = #{replayMark},</if>
+	        </trim>
+	        where dept_reg_id = #{deptRegId} 
+        </if>
+        <if test="ids != null and ids != '' "> 
+        	update t_dept_reg SET operate_state = #{operateState},replay_user_id = #{replayUserId},replay_time = now()
+        	where dept_reg_id in
+        	<foreach item="rId" collection="ids" open="(" separator="," close=")">
+	            #{rId}
+	        </foreach>
+        </if>
+    </update>
+
+    <delete id="deleteTDeptRegById" parameterType="Long">
+        delete from t_dept_reg where dept_reg_id = #{deptRegId}
+    </delete>
+
+    <delete id="deleteTDeptRegByIds" parameterType="String">
+        delete from t_dept_reg where dept_reg_id in 
+        <foreach item="deptRegId" collection="array" open="(" separator="," close=")">
+            #{deptRegId}
+        </foreach>
+    </delete>
+    
+</mapper>

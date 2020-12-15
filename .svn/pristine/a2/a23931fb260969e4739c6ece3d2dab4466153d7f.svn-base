@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org" xmlns:shiro="http://www.pollix.at/thymeleaf/shiro">
+<head>
+    <th:block th:include="include :: header('学员考试列表')" />
+</head>
+<body class="gray-bg">
+     <div class="container-div">
+        <div class="row">
+            <div class="col-sm-12 search-collapse">
+                <form id="formId">
+                    <div class="select-list">
+                        <ul>
+                            <li>
+                                <label>学员：</label>
+                                <input type="text" name="params[studentName]" placeholder="模糊搜索"/>
+                                <input type="hidden" name="params[roomId]" th:value="${searchRoomId}"/>
+                            </li>
+                            <li>
+                                <label>考试：</label>
+                                <input type="text" name="params[examTitle]" placeholder="精准搜索"/>
+                            </li>
+                            <li>
+                                <label>考试得分：</label>
+                                <input type="text" name="score"/>
+                            </li>
+                            <li>
+                                <label>考试状态：</label>
+                                <select name="judgeState" th:with="type=${@dict.getType('sys_judge_state')}">
+                                    <option value="">所有</option>
+                                    <option th:each="dict : ${type}" th:text="${dict.dictLabel}" th:value="${dict.dictValue}"></option>
+                                </select>
+                            </li>
+                            <li>
+                                <a class="btn btn-primary btn-rounded btn-sm" onclick="$.table.search()"><i class="fa fa-search"></i>&nbsp;搜索</a>
+                                <a class="btn btn-warning btn-rounded btn-sm" onclick="$.form.reset()"><i class="fa fa-refresh"></i>&nbsp;重置</a>
+                            </li>
+                        </ul>
+                    </div>
+                </form>
+            </div>
+            <div class="col-sm-12 select-table table-striped">
+                <table id="bootstrap-table"></table>
+            </div>
+        </div>
+    </div>
+    <th:block th:include="include :: footer" />
+    <script th:inline="javascript">
+        var editFlag = [[${@permission.hasPermi('system:examstudent:edit')}]];
+        var removeFlag = [[${@permission.hasPermi('system:examstudent:remove')}]];
+        var judgeStateDatas = [[${@dict.getType('sys_judge_state')}]];
+        var examStateDatas = [[${@dict.getType('sys_exam_state')}]];
+        var prefix = ctx + "system/examstudent";
+       
+        $(function() {
+            var options = {
+                url: prefix + "/list",
+                createUrl: prefix + "/add",
+                updateUrl: prefix + "/edit/{id}",
+                removeUrl: prefix + "/remove",
+                exportUrl: prefix + "/export",
+                modalName: "学员考试",
+                columns: [{
+                    checkbox: true
+                },
+                {
+                    field: 'id', 
+                    title: '序号',
+                    visible: false
+                },
+                {
+                    field: 'params.studentName', 
+                    title: '学员'
+                },
+                {
+                    field: 'params.examTitle', 
+                    title: '考试'
+                },
+                {
+                    field: 'params.state', 
+                    title: '考试状态',
+                    formatter: function(value, row, index) {
+                       return $.table.selectDictLabel(examStateDatas, value);
+                    }
+                },
+                {
+                    field: 'score', 
+                    title: '考试得分'
+                },
+                {
+                    field: 'judgeState', 
+                    title: '学生考试状态',
+                    formatter: function(value, row, index) {
+                    	var str = $.table.selectDictLabel(judgeStateDatas, value) + " ";
+                    	if(row.params.state>=3){
+	                       	if(row.beginTime==null ){
+	                       		str += "笔试未参加";
+	                       	}
+	                       	if( row.operateBeginTime==null){
+	                       		str += " 实操未参加";
+	                       	}
+	                       	if( row.argueBeginTime==null){
+	                       		str += " 答辩未参加";
+	                       	}
+                    	}else{
+                    		str += " 等待考试开始";
+                    	}
+                       	return str;
+                    }
+                },
+                {
+                    field: 'beginTime', 
+                    title: '开始笔试时间'
+                },
+                {
+                    field: 'argueEndTime', 
+                    title: '结束答辩时间'
+                },
+                {
+                    field: 'remark', 
+                    title: '备注',
+                    visible: false
+                },
+                {
+                    field: 'ctime', 
+                    title: '创建时间',
+                    visible: false
+                },
+                {
+                    title: '操作',
+                    align: 'center',
+                    formatter: function(value, row, index) {
+                        var actions = [];
+                        if(row.params.liveurl && row.params.state < 6 )
+                        	actions.push('<a class="btn btn-success btn-xs " href="'+row.params.liveurl+'" target="_blank"><i class="fa fa-video-camera"></i>查看直播</a> ');
+                        if(row.params.state == 6 )
+                    		actions.push('<a class="btn btn-success btn-xs " href="javascript:checkReply(\''+row.params.courseid+'\',\''+row.params.classid+'\')" ><i class="fa fa-caret-square-o-right"></i>回放</a> ');
+                    	if(row.judgeState == 3)
+	                    	actions.push('<a class="btn btn-success btn-xs ' + editFlag + '" href="javascript:void(0)" onclick="$.modal.openTab(\'查看成绩\', \'student/exam/score/'+row.id+'\')"><i class="fa fa-edit"></i>查看成绩</a> ');
+                        return actions.join('');
+                    }
+                }]
+            };
+            $.table.init(options);
+        });
+    </script>
+</body>
+</html>

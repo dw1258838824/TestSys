@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.project.system.business.mapper.TBusinessMapper">
+    
+    <resultMap type="TBusiness" id="TBusinessResult">
+        <result property="businessId"    column="business_id"    />
+        <result property="startUserId"    column="start_user_id"    />
+        <result property="startUserName"    column="start_user_name"    />
+        <result property="bsContext"    column="bs_context"    />
+        <result property="bsTel"    column="bs_tel"    />
+        <result property="acceptUserIds"    column="accept_user_ids"    />
+        <result property="acceptRoleIds"    column="accept_role_ids"    />
+        <result property="state"    column="state"    />
+        <result property="ctime"    column="ctime"    />
+    </resultMap>
+
+    <sql id="selectTBusinessVo">
+        select business_id, start_user_id, start_user_name, bs_context, bs_tel, accept_user_ids, accept_role_ids, state, ctime from t_business
+    </sql>
+
+    <select id="selectTBusinessList" parameterType="TBusiness" resultMap="TBusinessResult">
+        <include refid="selectTBusinessVo"/>
+        <where>  
+            <if test="startUserName != null  and startUserName != ''"> and start_user_name like concat('%', #{startUserName}, '%')</if>
+            <if test="state != null  and state != ''"> and state = #{state}</if>
+        </where>
+    </select>
+    
+    <select id="selectTBusinessById" parameterType="Long" resultMap="TBusinessResult">
+        <include refid="selectTBusinessVo"/>
+        where business_id = #{businessId}
+    </select>
+        
+    <insert id="insertTBusiness" parameterType="TBusiness" useGeneratedKeys="true" keyProperty="businessId">
+        insert into t_business
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="startUserId != null ">start_user_id,</if>
+            <if test="startUserName != null  and startUserName != ''">start_user_name,</if>
+            <if test="bsContext != null  and bsContext != ''">bs_context,</if>
+            <if test="bsTel != null  and bsTel != ''">bs_tel,</if>
+            <if test="acceptUserIds != null  and acceptUserIds != ''">accept_user_ids,</if>
+            <if test="acceptRoleIds != null  and acceptRoleIds != ''">accept_role_ids,</if>
+            <if test="state != null  and state != ''">state,</if>
+            <if test="ctime != null ">ctime,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="startUserId != null ">#{startUserId},</if>
+            <if test="startUserName != null  and startUserName != ''">#{startUserName},</if>
+            <if test="bsContext != null  and bsContext != ''">#{bsContext},</if>
+            <if test="bsTel != null  and bsTel != ''">#{bsTel},</if>
+            <if test="acceptUserIds != null  and acceptUserIds != ''">#{acceptUserIds},</if>
+            <if test="acceptRoleIds != null  and acceptRoleIds != ''">#{acceptRoleIds},</if>
+            <if test="state != null  and state != ''">#{state},</if>
+            <if test="ctime != null ">#{ctime},</if>
+         </trim>
+    </insert>
+
+    <update id="updateTBusiness" parameterType="TBusiness">
+        update t_business
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="startUserId != null ">start_user_id = #{startUserId},</if>
+            <if test="startUserName != null  and startUserName != ''">start_user_name = #{startUserName},</if>
+            <if test="bsContext != null  and bsContext != ''">bs_context = #{bsContext},</if>
+            <if test="bsTel != null  and bsTel != ''">bs_tel = #{bsTel},</if>
+            <if test="acceptUserIds != null  and acceptUserIds != ''">accept_user_ids = #{acceptUserIds},</if>
+            <if test="acceptRoleIds != null  and acceptRoleIds != ''">accept_role_ids = #{acceptRoleIds},</if>
+            <if test="state != null  and state != ''">state = #{state},</if>
+            <if test="ctime != null ">ctime = #{ctime},</if>
+        </trim>
+        where business_id = #{businessId}
+    </update>
+
+    <delete id="deleteTBusinessById" parameterType="Long">
+        delete from t_business where business_id = #{businessId}
+    </delete>
+
+    <delete id="deleteTBusinessByIds" parameterType="String">
+        delete from t_business where business_id in 
+        <foreach item="businessId" collection="array" open="(" separator="," close=")">
+            #{businessId}
+        </foreach>
+    </delete>
+    
+</mapper>

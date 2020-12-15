@@ -1,0 +1,94 @@
+package com.ruoyi.project.system.reg.service.impl;
+
+import java.util.List;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import com.ruoyi.project.system.reg.mapper.TDeptRegMapper;
+import com.ruoyi.project.system.reg.domain.TDeptReg;
+import com.ruoyi.project.system.reg.service.ITDeptRegService;
+import com.ruoyi.common.utils.text.Convert;
+
+/**
+ * 机构批量报名Service业务层处理
+ * 
+ * @author ruoyi
+ * @date 2020-07-31
+ */
+@Service
+public class TDeptRegServiceImpl implements ITDeptRegService 
+{
+    @Autowired
+    private TDeptRegMapper tDeptRegMapper;
+
+    /**
+     * 查询机构批量报名
+     * 
+     * @param deptRegId 机构批量报名ID
+     * @return 机构批量报名
+     */
+    @Override
+    public TDeptReg selectTDeptRegById(Long deptRegId)
+    {
+        return tDeptRegMapper.selectTDeptRegById(deptRegId);
+    }
+
+    /**
+     * 查询机构批量报名列表
+     * 
+     * @param tDeptReg 机构批量报名
+     * @return 机构批量报名
+     */
+    @Override
+    public List<TDeptReg> selectTDeptRegList(TDeptReg tDeptReg)
+    {
+        return tDeptRegMapper.selectTDeptRegList(tDeptReg);
+    }
+
+    /**
+     * 新增机构批量报名
+     * 
+     * @param tDeptReg 机构批量报名
+     * @return 结果
+     */
+    @Override
+    public int insertTDeptReg(TDeptReg tDeptReg)
+    {
+        return tDeptRegMapper.insertTDeptReg(tDeptReg);
+    }
+
+    /**
+     * 修改机构批量报名
+     * 
+     * @param tDeptReg 机构批量报名
+     * @return 结果
+     */
+    @Override
+    public int updateTDeptReg(TDeptReg tDeptReg)
+    {
+        return tDeptRegMapper.updateTDeptReg(tDeptReg);
+    }
+
+    /**
+     * 删除机构批量报名对象
+     * 
+     * @param ids 需要删除的数据ID
+     * @return 结果
+     */
+    @Override
+    public int deleteTDeptRegByIds(String ids)
+    {
+        return tDeptRegMapper.deleteTDeptRegByIds(Convert.toStrArray(ids));
+    }
+
+    /**
+     * 删除机构批量报名信息
+     * 
+     * @param deptRegId 机构批量报名ID
+     * @return 结果
+     */
+    @Override
+    public int deleteTDeptRegById(Long deptRegId)
+    {
+        return tDeptRegMapper.deleteTDeptRegById(deptRegId);
+    }
+}

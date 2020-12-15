@@ -1,0 +1,108 @@
+package com.ruoyi.project.system.api.controller;
+
+import java.io.IOException;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.alibaba.fastjson.JSONObject;
+import com.google.common.collect.Maps;
+import com.ruoyi.common.utils.HttpUtils;
+import com.ruoyi.project.system.config.mapper.ConfigMapper;
+
+import io.swagger.annotations.Api;
+
+@Api
+@Controller
+@RequestMapping("/api/python")
+public class PythonApi {
+	@Value("${python_api.method}") 
+	private  String method;
+	@Value("${python_api.url}") 
+	private  String url;
+	@Value("${python_api.parms}") 
+	private  String parms;
+	@Value("${python_api.values}") 
+	private  String values;
+	@Value("${python_api.result_key}") 
+	private  String result_key;
+	
+	/**
+	 * 编译python接口
+	 * @param code
+	 * @return
+	 */
+	public String pythonRun(String code) {
+		String result = "";
+		String [] parmsArray = parms.split("##");
+		String [] valuesArray = values.split("##");
+		try {
+			Map<String, String> parm = Maps.newHashMap();
+			for(int i=0;i<parmsArray.length;i++) {
+				if(valuesArray[i].equals("$code")) {
+					parm.put(parmsArray[i],code);
+				}else {
+					parm.put(parmsArray[i],valuesArray[i].equals("empty")?"":valuesArray[i]);
+				}
+			}
+			if(method.equals("POST")) {
+				result = HttpUtils.URLPost(url, parm, "UTF-8");
+			}else {
+				result = HttpUtils.URLGet(url, parm, "UTF-8");
+			}
+			if(result!="") {
+				JSONObject obj = JSONObject.parseObject(result);
+				result = obj.getString(result_key);
+				result = result.replaceAll("\n","\r\n");
+				result = result.substring(0,result.length()-2);
+			}
+		}catch (Exception e) {
+			e.printStackTrace();
+		}
+		return result;
+	}
+	
+	@Autowired
+	private ConfigMapper configMapper;
+
+	
+	@PostMapping("/run")
+	@ResponseBody
+	public String compile(HttpServletRequest request){
+		Map<String, String> parm = Maps.newHashMap();
+		parm.put("code",request.getParameter("code"));
+		parm.put("token",configMapper.checkConfigKeyUnique("python_api_token").getConfigValue()); //"4381fe197827ec87cbac9552f14ec62a"
+		parm.put("language","0");
+		parm.put("fileext","py");
+		parm.put("stdin","");
+		String result = "";
+		try {
+			result = HttpUtils.URLPost(configMapper.checkConfigKeyUnique("python_api_url").getConfigValue(), parm, "UTF-8"); //"https://tool.runoob.com/compile2.php"
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return result;
+	}
+	 
+	@SuppressWarnings({ "resource", "unused" })
+	public static void main(String[] args) throws IOException {
+		String str = "print('123')"; 
+		Map<String, String> parm = Maps.newHashMap();
+		parm.put("code",str);
+		String result = "";
+		try {
+			result = HttpUtils.URLPost("http://localhost:5000/run", parm, "UTF-8"); //"https://tool.runoob.com/compile2.php"
+			System.out.println(result);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+	}
+}

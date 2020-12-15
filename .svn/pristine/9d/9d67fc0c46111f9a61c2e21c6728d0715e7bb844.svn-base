@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.project.system.chart.mapper.ViewExamChartMapper">
+    
+    <resultMap type="ViewExamChart" id="ViewExamChartResult">
+        <result property="examId"    column="exam_id"    />
+        <result property="examTitle"    column="exam_title"    />
+        <result property="avgScore"    column="avg_score"    />
+        <result property="peopleCount"    column="people_count"    />
+        <result property="passCount"    column="pass_count"    />
+        <result property="passLv"    column="pass_lv"    />
+    </resultMap>
+
+    <sql id="selectViewExamChartVo">
+        select exam_id, exam_title, avg_score, people_count, pass_count, pass_lv from view_exam_chart
+    </sql>
+
+    <select id="selectViewExamChartList" parameterType="ViewExamChart" resultMap="ViewExamChartResult">
+        <include refid="selectViewExamChartVo"/>
+        <where>  
+            <if test="examTitle != null  and examTitle != ''"> and exam_title like CONCAT('%',#{examTitle},'%') </if>
+        </where>
+    </select>
+    
+    <select id="selectQuestionChart" parameterType="java.util.Map" resultType="java.util.Map" >
+       SELECT
+			s.question_id AS questionId,
+			s.question_title AS questionTitle,
+			ifnull( q.count, 0 ) AS hasCount,
+			ifnull( q.emptyCount, 0 ) AS empCount,
+			ifnull( q.errorCount, 0 ) AS errorCount,
+			ifnull( q.rightCount, 0 ) AS rightCount 
+		FROM
+			(
+				(
+				SELECT
+					 pq.question_id,
+					 q.question_title
+				FROM
+					t_paper_question pq
+				LEFT JOIN t_question q ON pq.question_id = q.question_id
+				WHERE
+					paper_id IN ( SELECT t_exam.paper_id FROM t_exam WHERE exam_id = #{examId}  ) 
+				) s
+				LEFT JOIN (
+				SELECT 
+					question_id,
+					count( 1 ) AS count,
+					sum( IF ( ( ( t_question_record.student_answer IS NULL ) OR ( t_question_record.student_answer = '' ) ), 1, 0 ) ) AS emptyCount,
+					sum(
+					IF
+						( ( ( t_question_record.student_score IS NOT NULL ) AND ( t_question_record.student_score <![CDATA[ <> ]]> t_question_record.score ) ), 1, 0 ) 
+					) AS errorCount,
+					sum(
+					IF
+						( ( ( t_question_record.student_score IS NOT NULL ) AND ( t_question_record.student_score = t_question_record.score ) ), 1, 0 ) 
+					) AS rightCount 
+				FROM
+					t_question_record 
+				WHERE
+					( t_question_record.exam_id = #{examId} ) 
+				GROUP BY
+					t_question_record.student_id,
+					t_question_record.question_id 
+				) q ON ( ( s.question_id = q.question_id ) ) 
+			)
+		ORDER BY 
+		<if test="flag == 1 ">
+			empCount desc
+		</if>
+		<if test="flag == 2 ">
+			errorCount desc
+		</if>
+		<if test="flag == 3 ">
+			rightCount desc
+		</if>
+    </select>
+    
+    <select id="selectViewExamChartById" parameterType="Long" resultMap="ViewExamChartResult">
+        <include refid="selectViewExamChartVo"/>
+        where exam_id = #{examId}
+    </select>
+        
+    <insert id="insertViewExamChart" parameterType="ViewExamChart">
+        insert into view_exam_chart
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="examId != null ">exam_id,</if>
+            <if test="examTitle != null  and examTitle != ''">exam_title,</if>
+            <if test="avgScore != null ">avg_score,</if>
+            <if test="peopleCount != null ">people_count,</if>
+            <if test="passCount != null ">pass_count,</if>
+            <if test="passLv != null  and passLv != ''">pass_lv,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="examId != null ">#{examId},</if>
+            <if test="examTitle != null  and examTitle != ''">#{examTitle},</if>
+            <if test="avgScore != null ">#{avgScore},</if>
+            <if test="peopleCount != null ">#{peopleCount},</if>
+            <if test="passCount != null ">#{passCount},</if>
+            <if test="passLv != null  and passLv != ''">#{passLv},</if>
+         </trim>
+    </insert>
+
+    <update id="updateViewExamChart" parameterType="ViewExamChart">
+        update view_exam_chart
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="examTitle != null  and examTitle != ''">exam_title = #{examTitle},</if>
+            <if test="avgScore != null ">avg_score = #{avgScore},</if>
+            <if test="peopleCount != null ">people_count = #{peopleCount},</if>
+            <if test="passCount != null ">pass_count = #{passCount},</if>
+            <if test="passLv != null  and passLv != ''">pass_lv = #{passLv},</if>
+        </trim>
+        where exam_id = #{examId}
+    </update>
+
+    <delete id="deleteViewExamChartById" parameterType="Long">
+        delete from view_exam_chart where exam_id = #{examId}
+    </delete>
+
+    <delete id="deleteViewExamChartByIds" parameterType="String">
+        delete from view_exam_chart where exam_id in 
+        <foreach item="examId" collection="array" open="(" separator="," close=")">
+            #{examId}
+        </foreach>
+    </delete>
+    
+</mapper>

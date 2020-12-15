@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org" xmlns:shiro="http://www.pollix.at/thymeleaf/shiro">
+<head>
+    <th:block th:include="include :: header('在线考试')" />
+</head>
+<body class="gray-bg">
+     <div class="video_canvas">
+		<video id="video" width="500" height="500" autoplay muted></video>
+		<canvas id="canvas" width="500" height="500" hidden></canvas>
+		<div class="confirm">
+			<a id="snap" class="btn btn-primary btn-rounded .btn-lg"  style="display:none"><i class="fa fa-camera"></i>&nbsp;&nbsp;&nbsp;点&nbsp;击&nbsp;验&nbsp;证</a>
+		</div>
+	</div>
+     
+     <div class="start_countdown">
+     	<p>距&nbsp;离&nbsp;考&nbsp;试&nbsp;开&nbsp;始&nbsp;还&nbsp;有</p>
+     	<p id="start_time"></p>
+     </div>
+     
+     <div class="container-div">
+        <div class="row">
+            <div class="exam-show-list">
+                <div id="showExam" class="exam exam-list"></div>
+                <div class="exam exam-info">
+                	<div class="countdown">
+                		<p>距&nbsp;离&nbsp;考&nbsp;试&nbsp;结&nbsp;束&nbsp;还&nbsp;有</p>
+                		<p id="time"></p>
+                	</div>
+                	<button id="saveBtn" type="button" class="btn btn-primary">保 存</button>
+                	<button id="submitBtn" type="button" class="btn btn-primary" disabled>交 卷</button>
+                	<button id="clearBtn" type="button" class="btn btn-primary hide">清 除</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="video_canvas">
+		<div class="confirm">
+			
+		</div>
+	</div>
+	
+    <th:block th:include="include :: footer" />
+    <script th:inline="javascript">
+    	var prefix = ctx + "student/exam";
+    	var facePrefix = ctx + "student/faceauth";
+    	var isExam = [[${isExam}]];
+    	var examId = [[${examId}]];
+		var studentId = [[${studentId}]];
+		var fdata = window.localStorage.getItem('exam_student_form_'+studentId+"_"+examId);
+    	var dataInfo;
+    	var mm = 00;
+    	var ss = 00;
+    	var sBegintime = "";
+    	var sEndtime = "";
+    	$(function() {
+    		$(".container-div").hide();
+    		$(".start_countdown").hide();
+    		let video = document.getElementById('video');
+    		let canvas = document.getElementById('canvas');
+    		let context = canvas.getContext('2d');
+    		
+    		if(isExam=="0"){
+	    		//开启摄像头
+	    		if (navigator.mediaDevices.getUserMedia || navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia) {
+	    			getUserMedia({video:{width:500,height:500}},success,error)
+	    		}else {
+	    			$.modal.alertError("您的设备不支持");
+	    		}
+    		}else{
+    			$.modal.alert("您已经参与过本次考试了！");
+				setTimeout(function(){window.close()},3000);
+    		}
+    		
+    		//实现拍照的功能
+    		document.getElementById('snap').addEventListener('click',function(){
+    			$.modal.loading("正在校验，请稍后...");
+    			//暂停video
+    			video.pause();
+    			context.drawImage(video,0,0,500,500);
+    			imgData = canvas.toDataURL();
+    			var photo = imgData.substr(22);
+    			$.post(facePrefix + "/get",{faceImg:photo},function(data,status,xhr){
+    				$.modal.closeLoading();
+    				if(data.code == 0){
+    					//获取摄像头并关闭摄像头占用
+    	    			var track = video.srcObject.getTracks()[0];
+    	    			track.stop();
+        				$(".video_canvas").hide();
+        				list();
+    				}else{
+    					$.modal.alertError("人脸校验失败");
+    					video.play();
+    				}
+    			});
+    		});
+
+    		$("#submitBtn").click(function(){
+    			$.modal.confirm("确定要交卷吗？",function(){
+    				$("#submitBtn").attr("disabled",true);
+    				submitExam();
+    			});
+    			
+    		});
+    		$("#saveBtn").click(function(){
+    			var data = $("#examForm").serializeArray();
+   			 	window.localStorage.setItem('exam_student_form_'+studentId+"_"+examId, JSON.stringify(data));
+   				$.modal.msg("已保存");
+   				$("#submitBtn").attr("disabled",false);
+    		});
+    		
+    		$("#clearBtn").click(function(){
+   			 	window.localStorage.removeItem('exam_student_form_'+studentId+"_"+examId);
+    		});
+    	});
+    	//交卷
+    	function submitExam(){
+    		$("#submitBtn").attr("disabled",true);
+    		$("input[name^='questionVals']").each(function(){
+				var name = $(this).attr("name");
+				var number = name.replace('questionVals','').split('no')[0];
+				var val = $("#questionVal"+number).val();
+				var fgf = "";
+				if($("#questionVal"+number).val()!=''){
+					fgf = "###";
+				}
+				$("#questionVal"+number).val($("#questionVal"+number).val()+fgf+$(this).val());
+			});
+
+    		$("input[name^='questionChecks']:checked").each(function(){
+				var name = $(this).attr("name");
+				var number = name.replace('questionChecks','').split('no')[0];
+				var val = $("#questionVal"+number).val();
+				var fgf = "";
+				if($("#questionVal"+number).val()!=''){
+					fgf = ",";
+				}
+				$("#questionVal"+number).val($("#questionVal"+number).val()+fgf+$(this).val());
+			});
+    		
+			var curDate = new Date();
+			sEndtime = curDate.getFullYear() + "-"
+			+ addZero(curDate.getMonth() + 1) + "-"
+			+ addZero(curDate.getDate()) + " " 
+			+ addZero(curDate.getHours()) + ":"
+			+ addZero(curDate.getMinutes()) + ":"
+			+ addZero(curDate.getSeconds());
+			var parms = $.param({
+	    				    "studentId" : studentId,
+	    				    "examId" : examId,
+	    				    "beginTime" : sBegintime,
+	    				    "endTime" : sEndtime,
+	    				    "paperId" : dataInfo.paperId
+	    				}) + "&" +$('#examForm').serialize();
+			//$.operate.save("../submitexam", parms);
+			$.post("../submitexam",parms,function(result){
+				if(result=="success"){
+					$.modal.alert("交卷成功");
+					setTimeout(function(){window.close()},2000);
+				}else{
+					$.modal.alert("提交失败，请重试");
+					$("#submitBtn").attr("disabled",false);
+				}
+			});
+    	}
+    	//成功回调
+		function success(stream){
+			video.srcObject = stream;
+			video.play();
+			setTimeout(function(){$("#snap").show();},1000);
+		}
+		//失败回调
+		function error(error) {
+			$.modal.alertError("失败：请确保您的相机没有被其他应用程序使用（Chrome，即任何其他浏览器）");
+		}
+    	//用来匹配不同的浏览器
+		function getUserMedia(constraints,success,error){
+			if(navigator.mediaDevices.getUserMedia){
+				navigator.mediaDevices.getUserMedia(constraints).then(success).catch(error);
+			}else if (navigator.webkitGetUserMedia) {
+				navigator.webkitGetUserMedia(constraints,success,error);
+			}else if (navigator.mozGetUserMedia) {
+				navigator.mozGetUserMedia(constraints,success,error);
+			}else if (navigator.getUserMedia) {
+				navigator.getUserMedia(constraints,success,error)
+			}
+		}
+    	/* 查询考题 */
+    	function list(){
+    		$.get(prefix + "/get/" + examId,function(data,status,xhr){
+    			dataInfo = data;
+    			var time = xhr.getResponseHeader("Date");
+            	var beginTime = dateCompared(new Date(time),new Date(data.beginTime));
+            	var endTime = dateCompared(new Date(time),new Date(data.endTime));
+            	//如果考试结束-提示并关闭窗体
+            	if(endTime <= 0){
+            		$.modal.confirm("考试已结束", function() {
+            			closeWindow();
+            		});
+            	}else if(beginTime > 0){
+            		//如果未开始-显示开始考试倒计时
+            		$(".start_countdown").show();
+            		mm = beginTime;
+            		startCountdown();
+            	}else{
+            		var time = xhr.getResponseHeader("Date");
+    				var curDate = new Date(time);
+    				sBegintime = curDate.getFullYear() + "-"
+    				+ addZero(curDate.getMonth() + 1) + "-"
+    				+ addZero(curDate.getDate()) + " " 
+    				+ addZero(curDate.getHours()) + ":"
+    				+ addZero(curDate.getMinutes()) + ":"
+    				+ addZero(curDate.getSeconds());
+            		//如果已经开始考试展示考题
+            		var html = returnAllHtml(data.params.paperDoc,fdata);
+            		$(".container-div").show();
+            		$(".start_countdown").hide();
+                	$("#showExam").html(html);
+            		mm = endTime;
+            		//结束倒计时
+            		endCountdown();
+            		
+            	}
+          	});
+    	}
+    	
+    	
+    	/* 结束考试倒计时 */
+    	function endCountdown(){
+    		if(mm <= 0 && ss == 0){
+    			submitExam();
+    			return;
+    		}
+    		if(ss <= 0){
+    			mm--;
+    			ss = 59;
+    		}else{
+    			ss--;
+    		}
+    		$("#time").text((mm <= 9 ? "0" + mm : + mm) + " 分 " + (ss <= 9 ? "0" + ss : + ss) + " 秒");
+    		setTimeout(function() { 
+    			endCountdown();
+    		},1000);
+    	}
+    	
+    	/* 开始考试倒计时 */
+    	function startCountdown(){
+    		//如果开始倒计时结束，便展示考题并计算结束 倒计时
+    		if(mm <= 0 && ss == 0){
+    			var endTime = dateCompared(new Date(),new Date(dataInfo.endTime));
+    			var html = returnAllHtml(dataInfo.params.paperDoc);
+        		$(".container-div").show();
+        		$(".start_countdown").hide();
+            	$("#showExam").html(html);
+        		mm = endTime;
+        		endCountdown();
+    			return;
+    		}
+    		if(ss <= 0){
+    			mm--;
+    			ss = 59;
+    		}else{
+    			ss--;
+    		}
+    		$("#start_time").text((mm <= 9 ? "0" + mm : + mm) + " 分 " + (ss <= 9 ? "0" + ss : + ss) + " 秒");
+    		setTimeout(function() { 
+    			startCountdown();
+    		},1000);
+    	}
+    	
+    	/* 对比两个时间相差多少分钟并返回 */
+    	function dateCompared(a,b){
+    		var aCount = a.getTime() / 60000;
+    		var bCount = b.getTime() / 60000;
+    		return Math.round(bCount - aCount);
+    	}
+    	
+    	/* 关闭窗口 */
+    	function closeWindow() {
+    	    var userAgent = navigator.userAgent;
+    	    if (userAgent.indexOf("Firefox") != -1 || userAgent.indexOf("Chrome") != -1) {
+    	        location.href = "about:blank";
+    	    } else {
+    	        window.opener = null;
+    	        window.open('', '_self');
+    	    }
+    	    window.close();
+    	}
+
+    </script>
+</body>
+
+<style>
+	.exam-show-list {
+    	width: 100%;
+	    background: #fff;
+	    border-radius: 6px;
+	    margin-top: 10px;
+	    margin-bottom: 10px;
+	    padding-top: 5px;
+	    padding-bottom: 13px;
+	    padding-left: 100px;
+	    box-shadow: 1px 1px 3px rgba(0,0,0,.2);
+	    overflow: auto;
+	}
+	
+	.exam{
+		float: left;
+	}
+	
+	.form-control-static {
+	    font-size: 18px;
+	    font-weight: 600;
+	}
+	
+	.form-group .radio{
+		font-size: 15px;
+		margin-bottom: 15px;
+	}
+	
+	.exam-list{
+		width: 60%;
+	}
+	
+	.exam-info{
+		width:30%;
+		position: fixed;
+		right: 20px;
+	}
+	
+	.exam-info button{
+		width:50%;
+		margin-top:50px;
+	}
+	
+	.exam-info .countdown{
+		background: #07c160;
+		padding: 15px 0px;
+		border-radius: 6px;
+		box-shadow: 1px 1px 3px rgba(0,0,0,.2);
+	}
+	
+	.exam-info .countdown p{
+		font-size:30px;
+		font-weight: 600;
+		text-align: center;
+		color:white;
+	}
+	
+	.video_canvas{
+		text-align: center;
+    	margin-top: 50px;
+	}
+	
+	video,canvas,.video{
+		width: 25% !important;
+		border-radius: 200px;
+	}
+	
+	.confirm{
+		margin-top: 20px;
+		text-align: center;
+	}
+	
+	.start_countdown{
+		text-align: center;
+	    margin-top: 200px;
+	    background: #07c160;
+	    color: white;
+	    width: 30%;
+    	margin-left: 35%;
+    	border-radius: 15px;
+    	font-size: 34px;
+    	font-weight: 600;
+    	padding: 25px 0px;
+	}
+</style>
+
+</html>

@@ -1,0 +1,94 @@
+package com.ruoyi.project.system.question.service.impl;
+
+import java.util.List;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import com.ruoyi.project.system.question.mapper.TQuestionMapper;
+import com.ruoyi.project.system.question.domain.TQuestion;
+import com.ruoyi.project.system.question.service.ITQuestionService;
+import com.ruoyi.common.utils.text.Convert;
+
+/**
+ * 题目管理Service业务层处理
+ * 
+ * @author ruoyi
+ * @date 2020-05-27
+ */
+@Service
+public class TQuestionServiceImpl implements ITQuestionService 
+{
+    @Autowired
+    private TQuestionMapper tQuestionMapper;
+
+    /**
+     * 查询题目管理
+     * 
+     * @param questionId 题目管理ID
+     * @return 题目管理
+     */
+    @Override
+    public TQuestion selectTQuestionById(Long questionId)
+    {
+        return tQuestionMapper.selectTQuestionById(questionId);
+    }
+
+    /**
+     * 查询题目管理列表
+     * 
+     * @param tQuestion 题目管理
+     * @return 题目管理
+     */
+    @Override
+    public List<TQuestion> selectTQuestionList(TQuestion tQuestion)
+    {
+        return tQuestionMapper.selectTQuestionList(tQuestion);
+    }
+
+    /**
+     * 新增题目管理
+     * 
+     * @param tQuestion 题目管理
+     * @return 结果
+     */
+    @Override
+    public int insertTQuestion(TQuestion tQuestion)
+    {
+        return tQuestionMapper.insertTQuestion(tQuestion);
+    }
+
+    /**
+     * 修改题目管理
+     * 
+     * @param tQuestion 题目管理
+     * @return 结果
+     */
+    @Override
+    public int updateTQuestion(TQuestion tQuestion)
+    {
+        return tQuestionMapper.updateTQuestion(tQuestion);
+    }
+
+    /**
+     * 删除题目管理对象
+     * 
+     * @param ids 需要删除的数据ID
+     * @return 结果
+     */
+    @Override
+    public int deleteTQuestionByIds(String ids)
+    {
+        return tQuestionMapper.deleteTQuestionByIds(Convert.toStrArray(ids));
+    }
+
+    /**
+     * 删除题目管理信息
+     * 
+     * @param questionId 题目管理ID
+     * @return 结果
+     */
+    @Override
+    public int deleteTQuestionById(Long questionId)
+    {
+        return tQuestionMapper.deleteTQuestionById(questionId);
+    }
+}

@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org" >
+<head>
+    <th:block th:include="include :: header('修改考场管理')" />
+</head>
+<body class="white-bg">
+    <div class="wrapper wrapper-content animated fadeInRight ibox-content">
+        <form class="form-horizontal m" id="form-room-edit" th:object="${tRoom}">
+            <input name="roomId" th:field="*{roomId}" type="hidden">
+            <div class="form-group">    
+                <label class="col-sm-3 control-label is-required">考场名称：</label>
+                <div class="col-sm-8">
+                    <input name="roomName" th:field="*{roomName}" class="form-control" type="text" readonly="readonly">
+                </div>
+            </div>
+            <div class="form-group">    
+                <label class="col-sm-3 control-label">监考老师：</label>
+                <div class="col-sm-8">
+               			<select name="teacherUserId" class="form-control m-b" th:with="teacher=${teachers}">
+							<option th:each="t : ${teacher}" th:text="${t.userName}" th:value="${t.userId}"  th:field="*{teacherUserId}"></option>
+						</select>
+                </div>
+            </div>
+        </form>
+    </div>
+    <th:block th:include="include :: footer" />
+    <script type="text/javascript">
+        var prefix = ctx + "system/room";
+        $("#form-room-edit").validate({
+            focusCleanup: true
+        });
+
+        function submitHandler() {
+            if ($.validate.form()) {
+                $.operate.save(prefix + "/edit", $('#form-room-edit').serialize());
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html  lang="zh" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+    <title>学员注册</title>
+    <meta name="description" content="若依后台管理框架">
+    <link href="../static/css/bootstrap.min.css" th:href="@{/css/bootstrap.min.css}" rel="stylesheet"/>
+    <link href="../static/css/font-awesome.min.css" th:href="@{/css/font-awesome.min.css}" rel="stylesheet"/>
+    <link href="../static/css/style.css" th:href="@{/css/style.css}" rel="stylesheet"/>
+    <link href="../static/css/login.min.css" th:href="@{/css/login.min.css}" rel="stylesheet"/>
+    <link href="../static/ruoyi/css/ry-ui.css" th:href="@{/ruoyi/css/ry-ui.css?v=4.2.0}" rel="stylesheet"/>
+    <!-- 360浏览器急速模式 -->
+    <meta name="renderer" content="webkit">
+    <!-- 避免IE使用兼容模式 -->
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <link rel="shortcut icon" href="../static/favicon.ico" th:href="@{favicon.ico}"/>
+    <style type="text/css">label.error { position:inherit;  }</style>
+</head>
+<body class="signin">
+	<img id="logo" th:src="@{/img/system.png}"  />
+	<div style="float: right;margin: 20px;">
+		<a id="reg" th:href="@{/login?flag=root}" style="float:right">后台登录 </a>
+		<a id="reg" th:href="@{/login}" style="float:right">学生登录 | &nbsp; </a>
+		<a id="reg" th:href="@{/register}" style="float:right">学生注册 | &nbsp; </a>
+	</div>
+    <div class="signinpanel">
+        <div class="row">
+            <div style="width:40%;margin-left: 30%">
+                <form id="registerForm" autocomplete="off">
+                    <h4 class="no-margins">注册：</h4>
+                    <!-- <p class="m-t-md">你若不离不弃，我必生死相依</p> -->
+                    <input type="text" name="username" class="form-control uname" placeholder="监护人手机号码" maxlength="11" />
+                    <div class="row m-t">
+						<div class="col-xs-6">
+						    <input type="text" name="phoneCode" class="form-control" placeholder="短信验证码" maxlength="10" />
+						</div>
+						<div class="col-xs-6">
+							<div id="getCode" class="btn btn-success btn-block">获取验证码</div>
+						</div>
+					</div>
+                    <input type="password" name="password" class="form-control pword" placeholder="密码" maxlength="20" />
+                    <input type="password" name="confirmPassword" class="form-control pword" placeholder="确认密码" maxlength="20" />
+                    <input type="text" name="deptId" class="form-control" placeholder="邀请机构码(无机构号请填100)" maxlength="20" />
+                    <button class="btn btn-success btn-block" id="btnSubmit" data-loading="正在验证注册，请稍后...">注册</button>
+                		<p style="float: right">已拥有账户？<a th:href="@{/login}">直接登陆</a></p>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="signup-footer">
+        <div class="pull-left">
+            &copy;  All Rights Reserved. 中国电子劳动学会 | 京ICP备20021684 <br>
+        </div>
+    </div> 
+<script th:inline="javascript"> var ctx = [[@{/}]]; var captchaType = [[${captchaType}]]; </script>
+<!-- 全局js -->
+<script src="../static/js/jquery.min.js" th:src="@{/js/jquery.min.js}"></script>
+<script src="../static/js/bootstrap.min.js" th:src="@{/js/bootstrap.min.js}"></script>
+<!-- 验证插件 -->
+<script src="../static/ajax/libs/validate/jquery.validate.min.js" th:src="@{/ajax/libs/validate/jquery.validate.min.js}"></script>
+<script src="../static/ajax/libs/validate/messages_zh.min.js" th:src="@{/ajax/libs/validate/messages_zh.min.js}"></script>
+<script src="../static/ajax/libs/layer/layer.min.js" th:src="@{/ajax/libs/layer/layer.min.js}"></script>
+<script src="../static/ajax/libs/blockUI/jquery.blockUI.js" th:src="@{/ajax/libs/blockUI/jquery.blockUI.js}"></script>
+<script src="../static/ruoyi/js/ry-ui.js" th:src="@{/ruoyi/js/ry-ui.js?v=4.2.0}"></script>
+<script src="../static/ruoyi/register.js" th:src="@{/ruoyi/register.js}"></script>
+
+<script src="../static/ruoyi/laydate/laydate.js" th:src="@{/ruoyi/laydate/laydate.js}"></script>
+
+<script>
+
+	laydate.render({
+	  elem: '#birthday' //指定元素
+	});
+
+	var i = 1;
+	setInterval(function(){
+		if(i==1){
+			$(".signin").css("background-image","url('img/2.jpg')");
+			i = 2;
+		}else if (i==2){
+			$(".signin").css("background-image","url('img/3.jpg')");
+			i = 3;
+		}else{
+			$(".signin").css("background-image","url('img/1.jpg')");
+			i = 1;
+		}
+	},3000);
+</script>
+<style>
+	body{background-color: #66B3FF}
+	#logo{
+		width:18%;
+	}
+	#centerDiv{
+		margin-left: -40%;
+		width: 180%;		
+	}
+	.loginDiv{
+		float: right;
+	}
+	.panel-heading{
+		height:23px;
+		font-size: 11px;
+		padding: 3px;
+		overflow: hidden;
+		background-color: blue;
+	}
+	.panel-body{
+		overflow: scroll;
+	}
+	#signupForm,#notice{
+		 box-shadow: .300rem .300rem .300rem rgba(0,0,0,.2);
+	    -moz-border-radius: 15px;
+	    -webkit-border-radius: 15px;
+	    height: 300px;
+	    padding: 8px;
+	}
+	.signup-footer{
+		position:fixed;
+		float: right;
+		bottom: 0px;
+		right:0px;
+	}
+	.signinpanel{
+		margin-top: 5%;
+	}
+	h4{color:white;}
+	
+</style>
+</body>
+</html>

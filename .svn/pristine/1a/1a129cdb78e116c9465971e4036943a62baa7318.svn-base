@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html  lang="zh" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!--360浏览器优先以webkit内核解析-->
+    <title>若依介绍</title>
+    <link rel="shortcut icon" href="favicon.ico">
+    <link href="../static/css/bootstrap.min.css" th:href="@{/css/bootstrap.min.css}" rel="stylesheet"/>
+    <link href="../static/css/font-awesome.min.css" th:href="@{/css/font-awesome.min.css}" rel="stylesheet"/>
+    <link href="../static/css/main/animate.min.css" th:href="@{/css/main/animate.min.css}" rel="stylesheet"/>
+    <link href="../static/css/main/style.min862f.css" th:href="@{/css/main/style.min862f.css}" rel="stylesheet"/>
+    
+</head>
+
+<body class="gray-bg">
+        <div class="col-sm-12 noticeDiv" style="height: 500px">
+           	<div id="notice">
+                 <div id="vertical-timeline" class="vertical-container light-timeline">
+                     <div class="vertical-timeline-block">
+                         <div class="vertical-timeline-icon navy-bg">
+                             <i class="fa fa-bell"></i>
+                         </div>
+                         <div class="vertical-timeline-content">
+                             <h2>会议</h2>
+                             <p>上一年的销售业绩发布会。总结产品营销和销售趋势及销售的现状。
+                             </p>
+                             <a href="#" class="btn btn-sm btn-primary"> 更多信息</a>
+                             <span class="vertical-date">
+                         		 <br> <small>2月3日</small>
+                     		</span>
+                         </div>
+                     </div>
+                 </div>
+            </div>
+        </div>
+
+    <script th:src="@{/js/jquery.min.js}"></script>
+    <script th:src="@{/js/bootstrap.min.js}"></script>
+    <script th:src="@{/ajax/libs/layer/layer.min.js}"></script>
+    <script th:inline="javascript">
+    	var notices = [[${notices}]];
+    	$(function(){
+    		var h = "";
+    		if(notices.length > 0){
+    			for(var i=0; i<notices.length ;i++){
+    				if(notices[i].noticeType=='1')
+    						 h += '<div id="vertical-timeline" class="vertical-container light-timeline">'+
+			 				       '     <div class="vertical-timeline-block">'+
+			 				       '         <div class="vertical-timeline-icon navy-bg">'+
+			 				       '             <i class="fa fa-bell"></i>'+
+			 				       '         </div>'+
+			 				       '         <div class="vertical-timeline-content">'+
+			 				       '             <h2>'+notices[i].noticeTitle+'</h2>'+
+			 				       '             <p>'+notices[i].noticeContent+' </p>'+
+			 				       '             <span class="vertical-date">'+
+			 				       '         		 <br> <small>'+notices[i].createTime+'</small>'+
+			 				       '    		</span>'+
+			 				       '         </div>'+
+			 				       '     </div>'+
+			 				       '</div>';
+    			}
+    		}
+    		$("#notice").html(h);
+    	})
+    </script>
+</body>
+</html>

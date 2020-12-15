@@ -1,0 +1,147 @@
+package com.ruoyi.project.system.exam.controller;
+
+import java.util.List;
+
+import org.apache.shiro.authz.annotation.RequiresPermissions;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.ModelMap;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.ruoyi.common.utils.poi.ExcelUtil;
+import com.ruoyi.framework.aspectj.lang.annotation.Log;
+import com.ruoyi.framework.aspectj.lang.enums.BusinessType;
+import com.ruoyi.framework.web.controller.BaseController;
+import com.ruoyi.framework.web.domain.AjaxResult;
+import com.ruoyi.framework.web.page.TableDataInfo;
+import com.ruoyi.project.system.dict.domain.DictData;
+import com.ruoyi.project.system.dict.utils.DictUtils;
+import com.ruoyi.project.system.exam.domain.TExam;
+import com.ruoyi.project.system.exam.service.ITExamService;
+
+/**
+ * 考试管理Controller
+ * 
+ * @author ruoyi
+ * @date 2020-06-04
+ */
+@Controller
+@RequestMapping("/system/exam")
+public class TExamController extends BaseController
+{
+    private String prefix = "system/exam";
+
+    @Autowired
+    private ITExamService tExamService;
+
+    @RequiresPermissions("system:exam:view")
+    @GetMapping()
+    public String exam()
+    {
+        return prefix + "/exam";
+    }
+
+    /**
+     * 查询考试管理列表
+     */
+    @RequiresPermissions("system:exam:list")
+    @PostMapping("/list")
+    @ResponseBody
+    public TableDataInfo list(TExam tExam)
+    {
+        startPage();
+        List<TExam> list = tExamService.selectTExamList(tExam);
+        return getDataTable(list);
+    }
+
+    /**
+     * 导出考试管理列表
+     */
+    @RequiresPermissions("system:exam:export")
+    @Log(title = "考试管理", businessType = BusinessType.EXPORT)
+    @PostMapping("/export")
+    @ResponseBody
+    public AjaxResult export(TExam tExam)
+    {
+        List<TExam> list = tExamService.selectTExamList(tExam);
+        List<DictData> dicts = DictUtils.getDictCache("sys_exam_mode");
+        List<DictData> dicts2 = DictUtils.getDictCache("sys_exam_state");
+        for (TExam te : list) {
+        	for (DictData dictData : dicts) {
+				if(dictData.getDictValue().equals(te.getExamMode())) {
+					te.setExamMode(dictData.getDictLabel());
+				}
+			}
+        	for (DictData dictData2 : dicts2) {
+				if(dictData2.getDictValue().equals(te.getState())) {
+					te.setState(dictData2.getDictLabel());
+				}
+			}
+        	te.setPaperName(te.getParams().get("paperName").toString());
+        	te.setLevelName(te.getParams().get("levelName").toString());
+        	te.setSubjectName(te.getParams().get("subjectName").toString());
+		}
+        ExcelUtil<TExam> util = new ExcelUtil<TExam>(TExam.class);
+        return util.exportExcel(list, "exam");
+    }
+
+    /**
+     * 新增考试管理
+     */
+    @GetMapping("/add")
+    public String add()
+    {
+        return prefix + "/add";
+    }
+
+    /**
+     * 新增保存考试管理
+     */
+    @RequiresPermissions("system:exam:add")
+    @Log(title = "考试管理", businessType = BusinessType.INSERT)
+    @PostMapping("/add")
+    @ResponseBody
+    public AjaxResult addSave(TExam tExam)
+    {
+        return toAjax(tExamService.insertTExam(tExam));
+    }
+
+    /**
+     * 修改考试管理
+     */
+    @GetMapping("/edit/{examId}")
+    public String edit(@PathVariable("examId") Long examId, ModelMap mmap)
+    {
+        TExam tExam = tExamService.selectTExamById(examId);
+        mmap.put("tExam", tExam);
+        return prefix + "/edit";
+    }
+
+    /**
+     * 修改保存考试管理
+     */
+    @RequiresPermissions("system:exam:edit")
+    @Log(title = "考试管理", businessType = BusinessType.UPDATE)
+    @PostMapping("/edit")
+    @ResponseBody
+    public AjaxResult editSave(TExam tExam)
+    {
+        return toAjax(tExamService.updateTExam(tExam));
+    }
+
+    /**
+     * 删除考试管理
+     */
+    @RequiresPermissions("system:exam:remove")
+    @Log(title = "考试管理", businessType = BusinessType.DELETE)
+    @PostMapping( "/remove")
+    @ResponseBody
+    public AjaxResult remove(String ids)
+    {
+        return toAjax(tExamService.deleteTExamByIds(ids));
+    }
+}

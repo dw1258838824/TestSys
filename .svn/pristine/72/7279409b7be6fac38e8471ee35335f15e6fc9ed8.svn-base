@@ -1,0 +1,98 @@
+package com.ruoyi.project.system.question.service.impl;
+
+import java.util.List;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import com.ruoyi.project.system.question.mapper.TQuestionMapper;
+import com.ruoyi.project.system.question.domain.TQuestion;
+import com.ruoyi.project.system.question.service.ITQuestionService;
+import com.ruoyi.common.utils.security.ShiroUtils;
+import com.ruoyi.common.utils.text.Convert;
+
+/**
+ * 题库Service业务层处理
+ * 
+ * @author ruoyi
+ * @date 2020-05-27
+ */
+@Service
+public class TQuestionServiceImpl implements ITQuestionService 
+{
+    @Autowired
+    private TQuestionMapper tQuestionMapper;
+
+    /**
+     * 查询题库
+     * 
+     * @param questionId 题库ID
+     * @return 题库
+     */
+    @Override
+    public TQuestion selectTQuestionById(Long questionId)
+    {
+        return tQuestionMapper.selectTQuestionById(questionId);
+    }
+
+    /**
+     * 查询题库列表
+     * 
+     * @param tQuestion 题库
+     * @return 题库
+     */
+    @Override
+    public List<TQuestion> selectTQuestionList(TQuestion tQuestion)
+    {
+        return tQuestionMapper.selectTQuestionList(tQuestion);
+    }
+
+    /**
+     * 新增题库
+     * 
+     * @param tQuestion 题库
+     * @return 结果
+     */
+    @Override
+    public int insertTQuestion(TQuestion tQuestion)
+    {
+    	tQuestion.setCreator(ShiroUtils.getLoginName());
+    	tQuestion.setUperson(ShiroUtils.getLoginName());
+        return tQuestionMapper.insertTQuestion(tQuestion);
+    }
+
+    /**
+     * 修改题库
+     * 
+     * @param tQuestion 题库
+     * @return 结果
+     */
+    @Override
+    public int updateTQuestion(TQuestion tQuestion)
+    {
+    	tQuestion.setUperson(ShiroUtils.getLoginName());
+        return tQuestionMapper.updateTQuestion(tQuestion);
+    }
+
+    /**
+     * 删除题库对象
+     * 
+     * @param ids 需要删除的数据ID
+     * @return 结果
+     */
+    @Override
+    public int deleteTQuestionByIds(String ids)
+    {
+        return tQuestionMapper.deleteTQuestionByIds(Convert.toStrArray(ids));
+    }
+
+    /**
+     * 删除题库信息
+     * 
+     * @param questionId 题库ID
+     * @return 结果
+     */
+    @Override
+    public int deleteTQuestionById(Long questionId)
+    {
+        return tQuestionMapper.deleteTQuestionById(questionId);
+    }
+}

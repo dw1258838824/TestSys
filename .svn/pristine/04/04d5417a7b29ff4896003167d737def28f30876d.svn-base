@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org" xmlns:shiro="http://www.pollix.at/thymeleaf/shiro">
+<head>
+    <th:block th:include="include :: header('考试管理列表')" />
+</head>
+<body class="gray-bg">
+     <div class="container-div">
+        <div class="row">
+            <div class="col-sm-12 search-collapse">
+                <form id="formId">
+                    <div class="select-list">
+                        <ul>
+                            <li>
+                                <label>考试标题：</label>
+                                <input type="text" name="examTitle"/>
+                            </li>
+                            <li>
+                                <label>等级：</label>
+                                <select name="levelId" >
+                                    <option value="">所有</option>
+                                </select>
+                            </li>
+                            <li>
+                                <label>模式：</label>
+                                <select name="examMode" th:with="type=${@dict.getType('sys_exam_mode')}">
+                                    <option value="">所有</option>
+                                    <option th:each="dict : ${type}" th:text="${dict.dictLabel}" th:value="${dict.dictValue}"></option>
+                                </select>
+                            </li>
+                            <li>
+                                <label>科目：</label>
+                                <select name="subjectId" >
+                                    <option value="">所有</option>
+                                </select>
+                            </li>
+                            <li class="select-time2">
+                                <label>考试时间：</label>
+                                <input type="text" class="time-input" id="startTime" placeholder="开始时间" name="params[beginBeginTime]"/>
+                                <span>-</span>
+                                <input type="text" class="time-input" id="endTime" placeholder="结束时间" name="params[endBeginTime]"/>
+                            </li>
+                            <li class="select-time2">
+                                <label>报名时间：</label>
+                                <input type="text" class="time-input" id="startTime" placeholder="开始时间" name="params[beginRignBeginTime]"/>
+                                <span>-</span>
+                                <input type="text" class="time-input" id="endTime" placeholder="结束时间" name="params[endRignBeginTime]"/>
+                            </li>
+                            <li>
+                                <a class="btn btn-primary btn-rounded btn-sm" onclick="$.table.search()"><i class="fa fa-search"></i>&nbsp;搜索</a>
+                                <a class="btn btn-warning btn-rounded btn-sm" onclick="$.form.reset()"><i class="fa fa-refresh"></i>&nbsp;重置</a>
+                            </li>
+                        </ul>
+                    </div>
+                </form>
+            </div>
+            <div class="col-sm-12 select-table table-striped">
+                <table id="bootstrap-table"></table>
+            </div>
+        </div>
+    </div>
+
+
+     <div class="modal inmodal" id="myModal" tabindex="-1" role="dialog" aria-hidden="true">
+         <div class="modal-dialog" style="width: 250px">
+             <div class="modal-content animated bounceInRight">
+                 <div class="modal-header">
+                     <button type="button" class="close" onclick="hide()"><span aria-hidden="true">&times;</span><span class="sr-only">关闭</span></button>
+                     <h4 class="modal-title">打开微信扫一扫完成支付</h4>
+                 </div>
+                 <div class="modal-body" style="text-align: center">
+                     <div id="code"></div>
+                 </div>
+                 <div class="modal-footer">
+                     <button type="button" class="btn btn-white" onclick="hide()">关闭</button>
+                 </div>
+             </div>
+         </div>
+     </div>
+
+    <th:block th:include="include :: footer" />
+    <script th:inline="javascript">
+        var editFlag = [[${@permission.hasPermi('system:exam:edit')}]];
+        var removeFlag = [[${@permission.hasPermi('system:exam:remove')}]];
+        var examModeDatas = [[${@dict.getType('sys_exam_mode')}]];
+        var stateDatas = [[${@dict.getType('sys_exam_state')}]];
+        var isDeleteDatas = [[${@dict.getType('sys_is_delete')}]];
+        var prefix = ctx + "student/exam";
+        var bullPrefix = ctx + "student/bill";
+
+        var qrcode = new QRCode(document.getElementById("code"), {
+            text: "",
+            width: 200,
+            height: 200,
+            colorDark : "#000000",
+            colorLight : "#ffffff",
+            correctLevel : QRCode.CorrectLevel.H
+        });
+
+        $(function() {
+
+        	//initLevelList("levelId","");
+        	//initSubjectList("subjectId","");
+            var options = {
+                url: prefix + "/list",
+                createUrl: prefix + "/add",
+                updateUrl: prefix + "/edit/{id}",
+                removeUrl: prefix + "/remove",
+                exportUrl: prefix + "/export",
+                modalName: "考试管理",
+                columns: [
+                {
+                    field: 'examId', 
+                    title: '考试编号',
+                    visible: false
+                },
+                {
+                    field: 'examTitle',
+                    title: '考试标题'
+                 },
+                {
+                    field: 'params.paperName', 
+                    title: '试卷名称'
+                },
+                {
+                    field: 'params.levelName',
+                    title: '等级'
+                },
+                {
+                    field: 'params.subjectName', 
+                    title: '科目'
+                },
+                {
+                    title: '笔试时间',
+                    formatter: function(value, row, index) {
+                        var start = row.beginTime.split(" ")[1].split(":");
+                        var end = row.endTime.split(" ")[1].split(":");
+                        return row.beginTime.split(" ")[0] + " " + start[0] + ":" + start[1] + " - " + end[0] + ":" + end[1];
+                    }
+                },
+                {
+                    title: '实操时间',
+                    formatter: function(value, row, index) {
+                        var start = row.operateBeginTime.split(" ")[1].split(":");
+                        var end = row.operateEndTime.split(" ")[1].split(":");
+                        return row.operateBeginTime.split(" ")[0] + " " + start[0] + ":" + start[1] + " - " + end[0] + ":" + end[1];
+                    }
+                },
+                {
+                    title: '答辩时间',
+                    formatter: function(value, row, index) {
+                        var start = row.argueBeginTime.split(" ")[1].split(":");
+                        var end = row.argueEndTime.split(" ")[1].split(":");
+                        return row.argueBeginTime.split(" ")[0] + " " + start[0] + ":" + start[1] + " - " + end[0] + ":" + end[1];
+                    }
+                },
+                {
+                    field: 'rignEndTime',
+                    title: '报名结束时间'
+                },
+                {
+                    field: 'examMode',
+                    title: '模式',
+                    formatter: function(value, row, index) {
+                        return $.table.selectDictLabel(examModeDatas, value);
+                    }
+                },
+                {
+                    field: 'price',
+                    title: '费用(元)'
+                },
+                {
+                    title: '操作',
+                    align: 'center',
+                    formatter: function(value, row, index) {
+                        var actions = [];
+                        if(row.payState == 1){
+                            actions.push('<a class="btn btn-success btn-xs" href="javascript:void(0)">已&nbsp;报&nbsp;名</a> ');
+                        }else{
+                        	var bstart = row.beginTime.split(" ")[1].split(":");
+                            var bend = row.endTime.split(" ")[1].split(":");
+                            var bs = row.beginTime.split(" ")[0] + " " + bstart[0] + ":" + bstart[1] + " - " + bend[0] + ":" + bend[1];
+                            var sstart = row.operateBeginTime.split(" ")[1].split(":");
+                            var send = row.operateEndTime.split(" ")[1].split(":");
+                            var sc = row.operateBeginTime.split(" ")[0] + " " + sstart[0] + ":" + sstart[1] + " - " + send[0] + ":" + send[1];
+                            var dstart = row.argueBeginTime.split(" ")[1].split(":");
+                            var dend = row.argueEndTime.split(" ")[1].split(":");
+                            var db = row.argueBeginTime.split(" ")[0] + " " + dstart[0] + ":" + dstart[1] + " - " + dend[0] + ":" + dend[1];
+                            actions.push('<button class="btn btn-primary btn-xs" href="javascript:void(0)" onclick="pay(\''+row.examId+'\',\''+row.examTitle+'\',\''+row.params.levelName+'\',\''+row.params.subjectName+'\',\''+bs+'\',\''+sc+'\',\''+db+'\',\''+row.examClaim+'\',\''+row.price+'\')">点&nbsp;击&nbsp;报&nbsp;名</button> ');
+                        }
+                        return actions.join('');
+                    }
+                }]
+            };
+            $.table.init(options);
+        });
+
+        function pay(examId,examTitle,levelName, subjectName,bs,sc,db,examClaim,price) {
+        	var html = "考试：" + examTitle + "<br/>";
+        		html += "科目：" + subjectName + "<br/>";
+        		html += "等级：" + levelName + "<br/>";
+        		html += "笔试时间：" + bs + "<br/>";
+        		html += "实操时间：" + sc + "<br/>";
+        		html += "答辩时间：" + db + "<br/>";
+        		html += "考试要求：" + examClaim + "<br/>";
+        		html += "考试人：" + [[${student}]].studentName + "<br/>";
+        		html += "身份证：" + [[${student}]].idcard + "<br/>";
+        		html += "确定报名吗?";
+        	$.modal.confirm(html,function(){
+	            $.get(bullPrefix + "/wechat/pay",{examId:examId},function (rest) {
+	            	if(price == "0.00" || price == "0"){
+	            		var  html = "报名成功<br/>";
+		                   	 html += "考试人：" + [[${student}]].studentName + "<br/>";
+		               		 html += "身份证：" + [[${student}]].idcard + "<br/>";
+		               		 html += "准考证号：" + rest.data + "<br/>";
+	                		 html += "因考试时需要配合ClassIn客户端进行录像，所以需要下载<a href='http://www.eeo.cn/cn/download.html'>ClassIn客户端</a>；<br/>";
+	                		 html += "如果已经有ClassIn账号，在考试前请使用原账号登录，如果没有注册过，系统已自动帮您注册好账号，用户名为监护人手机号，密码与在本系统注册的密码相同；<br/>";
+	                		 html += "请注意考试时间，提前5分钟进入线上考试.";
+	            		$.modal.confirm2(html,function(){
+	            			$.table.refresh();
+	            		})
+	            	}else if(rest.code == 0){
+	                    qrcode.clear(); // 清除代码
+	                    qrcode.makeCode(rest.data.url); // 生成另外一个二维码
+	                    $("#myModal").show();
+	                    isSuccess(rest.data.billNo,examId);
+	                }else if(rest.code == 500){
+	                    $.table.search();
+	                    $.modal.alertError(rest.msg);
+	                }else{
+	                    $.modal.alertError("服务器异常");
+	                }
+	                
+	            });
+        	});
+            
+        }
+
+        function isSuccess(billNo,examId) {
+            setTimeout(function() {
+                $.get(bullPrefix + "/isSuccess",{billNo:billNo,examId:examId,studentId:[[${student}]].studentId},function (rest) {
+                    if(rest.msg == "SUCCESS"){
+                        $("#myModal").hide();
+                        $.table.search();
+                        var  html = "报名成功<br/>";
+                        	 html += "考试人：" + [[${student}]].studentName + "<br/>";
+	                		 html += "身份证：" + [[${student}]].idcard + "<br/>";
+	                		 html += "准考证号：" + rest.data + "<br/>";
+	                		 html += "因考试时需要配合ClassIn客户端进行录像，所以需要下载<a href='http://www.eeo.cn/cn/download.html'>ClassIn客户端</a>；<br/>";
+	                		 html += "如果已经有ClassIn账号，在考试前请使用原账号登录，如果没有注册过，系统已自动帮您注册好账号，用户名为监护人手机号，密码与在本系统注册的密码相同；<br/>";
+	                		 html += "请注意考试时间，提前5分钟进入线上考试.";
+                		$.modal.confirm2(html,function(){
+ 	            			$.table.refresh();
+ 	            		})
+                        return;
+                    }else if(rest.data == "ERROR"){
+                        $("#myModal").hide();
+                        $.modal.alertError(rest.msg);
+                        return;
+                    }
+                    isSuccess(billNo,examId);
+                });
+            },2000);
+        }
+
+        function hide(){
+            $("#myModal").hide();
+        }
+
+    </script>
+</body>
+</html>

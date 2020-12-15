@@ -1,0 +1,230 @@
+package com.ruoyi.project.system.question.domain;
+
+import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.commons.lang3.builder.ToStringStyle;
+import com.ruoyi.framework.aspectj.lang.annotation.Excel;
+import com.ruoyi.framework.web.domain.BaseEntity;
+import java.util.Date;
+
+/**
+ * 题库对象 t_question
+ * 
+ * @author ruoyi
+ * @date 2020-05-27
+ */
+public class TQuestion extends BaseEntity
+{
+    private static final long serialVersionUID = 1L;
+
+    /** 题目编号 */
+    private Long questionId;
+
+    /** 题目标题 */
+    @Excel(name = "题目标题")
+    private String questionTitle;
+
+    /** 题目内容 */
+    private String questionHtml;
+
+    /** 题目答案 */
+    private String questionAnswer;
+
+    /** 答案解析 */
+    private String questionAnswerAnalysis;
+
+    /** 题目类型 */
+    @Excel(name = "题目类型")
+    private Long questionTypeId;
+
+    /** 等级 */
+    @Excel(name = "等级")
+    private Long levelId;
+
+    /** 科目 */
+    @Excel(name = "科目")
+    private Long subjectId;
+
+    /** 知识点 */
+    @Excel(name = "知识点")
+    private Long questionPointId;
+
+    /** 题目关联文件路径 */
+    private String questionFile;
+
+    /** 创建时间 */
+    @Excel(name = "创建时间", width = 30, dateFormat = "yyyy-MM-dd")
+    private Date ctime;
+
+    /** 创建者 */
+    @Excel(name = "创建者")
+    private String creator;
+
+    /** 更新时间 */
+    @Excel(name = "更新时间", width = 30, dateFormat = "yyyy-MM-dd")
+    private Date utime;
+
+    /** 更新人 */
+    @Excel(name = "更新人")
+    private String uperson;
+
+    /** 是否删除 */
+    @Excel(name = "是否删除")
+    private String isDelete;
+
+    public void setQuestionId(Long questionId) 
+    {
+        this.questionId = questionId;
+    }
+
+    public Long getQuestionId() 
+    {
+        return questionId;
+    }
+    public void setQuestionTitle(String questionTitle) 
+    {
+        this.questionTitle = questionTitle;
+    }
+
+    public String getQuestionTitle() 
+    {
+        return questionTitle;
+    }
+    public void setQuestionHtml(String questionHtml) 
+    {
+        this.questionHtml = questionHtml;
+    }
+
+    public String getQuestionHtml() 
+    {
+        return questionHtml;
+    }
+    public void setQuestionAnswer(String questionAnswer) 
+    {
+        this.questionAnswer = questionAnswer;
+    }
+
+    public String getQuestionAnswer() 
+    {
+        return questionAnswer;
+    }
+    public void setQuestionAnswerAnalysis(String questionAnswerAnalysis) 
+    {
+        this.questionAnswerAnalysis = questionAnswerAnalysis;
+    }
+
+    public String getQuestionAnswerAnalysis() 
+    {
+        return questionAnswerAnalysis;
+    }
+    public void setQuestionTypeId(Long questionTypeId) 
+    {
+        this.questionTypeId = questionTypeId;
+    }
+
+    public Long getQuestionTypeId() 
+    {
+        return questionTypeId;
+    }
+    public void setLevelId(Long levelId) 
+    {
+        this.levelId = levelId;
+    }
+
+    public Long getLevelId() 
+    {
+        return levelId;
+    }
+    public void setSubjectId(Long subjectId) 
+    {
+        this.subjectId = subjectId;
+    }
+
+    public Long getSubjectId() 
+    {
+        return subjectId;
+    }
+    public void setQuestionPointId(Long questionPointId) 
+    {
+        this.questionPointId = questionPointId;
+    }
+
+    public Long getQuestionPointId() 
+    {
+        return questionPointId;
+    }
+    public void setQuestionFile(String questionFile) 
+    {
+        this.questionFile = questionFile;
+    }
+
+    public String getQuestionFile() 
+    {
+        return questionFile;
+    }
+    public void setCtime(Date ctime) 
+    {
+        this.ctime = ctime;
+    }
+
+    public Date getCtime() 
+    {
+        return ctime;
+    }
+    public void setCreator(String creator) 
+    {
+        this.creator = creator;
+    }
+
+    public String getCreator() 
+    {
+        return creator;
+    }
+    public void setUtime(Date utime) 
+    {
+        this.utime = utime;
+    }
+
+    public Date getUtime() 
+    {
+        return utime;
+    }
+    public void setUperson(String uperson) 
+    {
+        this.uperson = uperson;
+    }
+
+    public String getUperson() 
+    {
+        return uperson;
+    }
+    public void setIsDelete(String isDelete) 
+    {
+        this.isDelete = isDelete;
+    }
+
+    public String getIsDelete() 
+    {
+        return isDelete;
+    }
+
+    @Override
+    public String toString() {
+        return new ToStringBuilder(this,ToStringStyle.MULTI_LINE_STYLE)
+            .append("questionId", getQuestionId())
+            .append("questionTitle", getQuestionTitle())
+            .append("questionHtml", getQuestionHtml())
+            .append("questionAnswer", getQuestionAnswer())
+            .append("questionAnswerAnalysis", getQuestionAnswerAnalysis())
+            .append("questionTypeId", getQuestionTypeId())
+            .append("levelId", getLevelId())
+            .append("subjectId", getSubjectId())
+            .append("questionPointId", getQuestionPointId())
+            .append("questionFile", getQuestionFile())
+            .append("ctime", getCtime())
+            .append("creator", getCreator())
+            .append("utime", getUtime())
+            .append("uperson", getUperson())
+            .append("isDelete", getIsDelete())
+            .toString();
+    }
+}

@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org" xmlns:shiro="http://www.pollix.at/thymeleaf/shiro">
+<head>
+    <th:block th:include="include :: header('报名管理列表')" />
+</head>
+<body class="gray-bg">
+     <div class="container-div">
+        <div class="row">
+            <div class="col-sm-12 search-collapse">
+                <form id="formId">
+                    <div class="select-list">
+                        <ul>
+                            <li>
+                                <label>准考状态：</label>
+                                <select name="state" th:with="type=${@dict.getType('sys_register_state')}">
+                                    <option value="">所有</option>
+                                    <option th:each="dict : ${type}" th:text="${dict.dictLabel}" th:value="${dict.dictValue}"></option>
+                                </select>
+                            </li>
+                            <li>
+                                <label>准考证号：</label>
+                                <input type="text" name="examCode"/>
+                            </li>
+                            <li class="select-time">
+                                <label>报名时间：</label>
+                                <input type="text" class="time-input" id="startTime" placeholder="开始时间" name="params[beginCtime]"/>
+                                <span>-</span>
+                                <input type="text" class="time-input" id="endTime" placeholder="结束时间" name="params[endCtime]"/>
+                            </li>
+                            <li>
+                                <a class="btn btn-primary btn-rounded btn-sm" onclick="$.table.search()"><i class="fa fa-search"></i>&nbsp;搜索</a>
+                                <a class="btn btn-warning btn-rounded btn-sm" onclick="$.form.reset()"><i class="fa fa-refresh"></i>&nbsp;重置</a>
+                            </li>
+                        </ul>
+                    </div>
+                </form>
+            </div>
+            <div class="col-sm-12 select-table table-striped">
+                <table id="bootstrap-table"></table>
+            </div>
+        </div>
+        
+        <div class="video_canvas">
+			<video id="video" width="500" height="500" autoplay muted></video>
+			<h1 id="videoT">正在打开摄像头...</h1>
+			<canvas id="canvas" width="500" height="500" hidden></canvas>
+			<div class="confirm">
+				<a id="snap" class="btn btn-primary btn-rounded .btn-lg"  style="display:none"><i class="fa fa-camera"></i>&nbsp;&nbsp;&nbsp;点&nbsp;击&nbsp;验&nbsp;证</a>
+			</div>
+		</div>
+		
+		
+	    <div class="video_canvas">
+	    	<h1>请将人脸正对摄像头，点击验证<br/>摄像头如果无法打开，请检查摄像头设置</h1>
+			<div class="confirm">
+			</div>
+		</div>
+    </div>
+    <th:block th:include="include :: footer" />
+    <script th:inline="javascript">
+        var stateDatas = [[${@dict.getType('sys_register_state')}]];
+        var examStateDatas = [[${@dict.getType('sys_exam_state')}]];
+        var judgeStateDatas = [[${@dict.getType('sys_judge_state')}]];
+        var prefix = ctx + "student/register";
+        var facePrefix = ctx + "student/faceauth";
+        var userId = [[${userId}]];
+        
+        
+        $(function() {
+            //获取localStorage的值
+            var ischeck = foowwLocalStorage.get("ischeck"+userId);
+            if(ischeck=="1"){
+            	$(".video_canvas").hide();
+            	init();
+            	/* setInterval(function(){
+            		$.table.refresh();
+            	},10000); */
+            }else{
+	    		$(".row").hide();
+	    		//开启摄像头
+	    		if (navigator.mediaDevices.getUserMedia || navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia) {
+	    			getUserMedia({video:{width:500,height:500}},success,error)
+	    			setTimeout(function(){
+		        		$("#videoT").hide();
+		        	},1500);
+	    		}else {
+	    			$.modal.alertError("您的设备不支持");
+	    		}
+            }
+    		
+    		$("#snap").click(function(){
+    			faceSign();
+    		});
+    		
+        });
+        function faceSign(){
+        	let video = document.getElementById('video');
+    		let canvas = document.getElementById('canvas');
+    		let context = canvas.getContext('2d');
+        	$.modal.loading("正在校验，请稍后...");
+			//暂停video
+			video.pause();
+			context.drawImage(video,0,0,500,500);
+			var imgData = canvas.toDataURL();
+			var photo = imgData.substr(22);
+			$.post(facePrefix + "/get",{faceImg:photo},function(data,status,xhr){
+				$.modal.closeLoading();
+				if(data.code == 0){
+					//设置localStorage的值
+        			var now = new Date().getTime();
+		            foowwLocalStorage.set("ischeck"+userId, "1", now + (3*60*60*1000));
+					//获取摄像头并关闭摄像头占用
+	    			var track = video.srcObject.getTracks()[0];
+	    			track.stop();
+    				$(".video_canvas").hide();
+    				$(".row").show();
+    				init();
+				}else{
+					$.modal.alertError("人脸校验失败");
+					video.play();
+				}
+			});
+        }
+        function init(){
+            var options = {
+                url: prefix + "/list",
+                modalName: "报名管理",
+                columns: [
+                {
+                    field: 'params.examTitle', 
+                    title: '考试名称'
+                },
+                {
+                	field: 'params.levelName',
+                	title: '考试等级',
+                	
+                },
+                {
+                    field: 'examCode', 
+                    title: '准考证号'
+                },
+                {
+                    field: 'state', 
+                    title: '准考状态',
+                    formatter: function(value, row, index) {
+                       return $.table.selectDictLabel(stateDatas, value);
+                    }
+                },
+                {
+                    field: 'params.beginTime', 
+                    title: '笔试开始时间'
+                },
+                {
+                    field: 'params.operateBeginTime', 
+                    title: '实操开始时间'
+                },
+                {
+                    field: 'params.argueBeginTime', 
+                    title: '答辩开始时间'
+                },
+                {
+                    field: 'params.argueEndTime', 
+                    title: '考试结束时间'
+                },
+                {
+                    field: 'ctime', 
+                    title: '报名时间'
+                },
+                {
+                    field: 'params.exState', 
+                    title: '考试状态',
+                    formatter: function(value, row, index) {
+                        return $.table.selectDictLabel(examStateDatas, value);
+                     }
+                },
+                {
+                    field: 'params.judgeState', 
+                    title: '考生考试状态',
+                    formatter: function(value, row, index) {
+                    	var str = $.table.selectDictLabel(judgeStateDatas, value);
+                        return str==""?"已报名":str;
+                     }
+                },
+                {
+                    field: 'params.score', 
+                    title: '考试成绩'
+                },
+                {
+                    title: '操作',
+                    align: 'center',
+                    formatter: function(value, row, index) {
+                        var actions = [];
+                        if(row.state=="1"){
+	                        if(row.params.exState >= "2" || row.params.exState <= "5"){
+	                        	if(row.params.exState < "6"){
+			                        actions.push('<button class="btn btn-success btn-xs" onclick="start(\'' + row.examId + '\',\'startexam\')"><i class="fa fa-pencil"></i>笔试</button>');
+			                        actions.push('<button class="btn btn-success btn-xs" onclick="start(\'' + row.examId + '\',\'operateexam\')"><i class="fa fa-hand-lizard-o"></i>实操</button>');
+			                        actions.push('<button class="btn btn-success btn-xs" onclick="start(\'' + row.examId + '\',\'argueexam\')"><i class="fa fa-commenting"></i>答辩</button>');
+	                        	}
+		                        if(row.params.judgeState==3 && typeof(row.params.resId) != 'undefind' && row.params.resId != ''){
+	                     			actions.push('<button class="btn btn-success btn-xs" onclick="$.modal.openTab(\'查看考卷\', \'student/exam/score/'+row.params.resId+'\')"><i class="fa fa-flag"></i>查看考卷</button>');
+	                     		}
+	                        }
+                        }
+                        
+                        return actions.join('');
+                    }
+                }]
+            };
+            $.table.init(options);
+		}
+        
+        function start(examId,innerpath){
+        	window.open("exam/start/" + examId + "/" + innerpath);
+        }
+        
+      //成功回调
+		function success(stream){
+			video.srcObject = stream;
+			video.play();
+			setTimeout(function(){$("#snap").show();},1000);
+		}
+		//失败回调
+		function error(error) {
+			$.modal.alertError("失败：请确保您的相机没有被其他应用程序使用（Chrome，即任何其他浏览器）");
+		}
+    	//用来匹配不同的浏览器
+		function getUserMedia(constraints,success,error){
+			if(navigator.mediaDevices.getUserMedia){
+				navigator.mediaDevices.getUserMedia(constraints).then(success).catch(error);
+			}else if (navigator.webkitGetUserMedia) {
+				navigator.webkitGetUserMedia(constraints,success,error);
+			}else if (navigator.mozGetUserMedia) {
+				navigator.mozGetUserMedia(constraints,success,error);
+			}else if (navigator.getUserMedia) {
+				navigator.getUserMedia(constraints,success,error);
+			}
+		}
+
+		const foowwLocalStorage = {
+		    set: function (key, value, ttl_ms) {
+		        var data = { value: value, expirse: new Date(ttl_ms).getTime() };
+		        localStorage.setItem(key, JSON.stringify(data));
+		    },
+		    get: function (key) {
+		        var data = JSON.parse(localStorage.getItem(key));
+		        if (data !== null) {
+		            debugger
+		            if (data.expirse != null && data.expirse < new Date().getTime()) {
+		                localStorage.removeItem(key);
+		            } else {
+		                return data.value;
+		            }
+		        }
+		        return null;
+		    }
+		}
+    </script>
+    <style>
+    		
+	.video_canvas{
+		text-align: center;
+    	margin-top: 50px;
+	}
+	
+	video,canvas,.video{
+		width: 25% !important;
+		border-radius: 200px;
+	}
+	.btn-xs{
+		margin: 2px;
+	}
+    </style>
+</body>
+</html>

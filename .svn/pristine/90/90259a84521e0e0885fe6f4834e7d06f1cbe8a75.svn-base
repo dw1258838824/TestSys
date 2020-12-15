@@ -1,0 +1,68 @@
+package com.ruoyi.project.system.student.service;
+
+import java.util.List;
+import com.ruoyi.project.system.student.domain.Student;
+
+/**
+ * 学员Service接口
+ * 
+ * @author ruoyi
+ * @date 2020-06-05
+ */
+public interface IStudentService 
+{
+    /**
+     * 查询学员
+     * 
+     * @param studentId 学员ID
+     * @return 学员
+     */
+    public Student selectStudentById(Long studentId);
+    
+    public Student selectUserById(Long userId);
+    
+
+    /**
+     * 查询学员列表
+     * 
+     * @param student 学员
+     * @return 学员集合
+     */
+    public List<Student> selectStudentList(Student student);
+
+    /**
+     * 新增学员
+     * 
+     * @param student 学员
+     * @return 结果
+     */
+    public int insertStudent(Student student);
+
+    /**
+     * 修改学员
+     * 
+     * @param student 学员
+     * @return 结果
+     */
+    public int updateStudent(Student student);
+
+    /**
+     * 批量删除学员
+     * 
+     * @param ids 需要删除的数据ID
+     * @return 结果
+     */
+    public int deleteStudentByIds(String ids);
+
+    /**
+     * 删除学员信息
+     * 
+     * @param studentId 学员ID
+     * @return 结果
+     */
+    public int deleteStudentById(Long studentId);
+
+    public int updateWeChatIdByStudent(Student student);
+
+    public int updateFaceTokenByStudent(Student student);
+}

@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org" >
+<head>
+    <th:block th:include="include :: header('新增题目管理')" />
+</head>
+<body class="white-bg">
+    <div class="wrapper wrapper-content animated fadeInRight ibox-content">
+        <form class="form-horizontal m" id="form-question-add">
+            <div class="form-group">
+                <label class="col-sm-3 control-label">题目标题：</label>
+                <div class="col-sm-8">
+                    <textarea name="questionTitle" class="form-control" required></textarea>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-3 control-label">题目内容：</label>
+                <div class="col-sm-8">
+                    <textarea name="questionHtml" class="form-control" required></textarea>
+                </div>
+            </div>
+            <div class="form-group">    
+                <label class="col-sm-3 control-label">题目答案：</label>
+                <div class="col-sm-8">
+                    <input name="questionAnswer" class="form-control" type="text">
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-3 control-label">答案解析：</label>
+                <div class="col-sm-8">
+                    <textarea name="questionAnswerAnalysis" class="form-control"></textarea>
+                </div>
+            </div>
+            <div class="form-group">    
+                <label class="col-sm-3 control-label">等级：</label>
+                <div class="col-sm-8">
+                    <select name="levelId" class="form-control m-b" required>
+                        <option value="">所有</option>
+                    </select>
+                    <span class="help-block m-b-none"><i class="fa fa-info-circle"></i> 代码生成请选择字典属性</span>
+                </div>
+            </div>
+            <div class="form-group">    
+                <label class="col-sm-3 control-label">科目：</label>
+                <div class="col-sm-8">
+                    <select name="subjectId" class="form-control m-b">
+                        <option value="">所有</option>
+                    </select>
+                    <span class="help-block m-b-none"><i class="fa fa-info-circle"></i> 代码生成请选择字典属性</span>
+                </div>
+            </div>
+            <div class="form-group">    
+                <label class="col-sm-3 control-label">知识点：</label>
+                <div class="col-sm-8">
+                    <select name="questionPointId" class="form-control m-b">
+                        <option value="">所有</option>
+                    </select>
+                    <span class="help-block m-b-none"><i class="fa fa-info-circle"></i> 代码生成请选择字典属性</span>
+                </div>
+            </div>
+            <div class="form-group">    
+                <label class="col-sm-3 control-label">题目文件路径：</label>
+                <div class="col-sm-8">
+                    <input name="questionFile" class="form-control" type="text">
+                </div>
+            </div>
+            <div class="form-group">    
+                <label class="col-sm-3 control-label">创建者：</label>
+                <div class="col-sm-8">
+                    <input name="creator" class="form-control" type="text">
+                </div>
+            </div>
+            <div class="form-group">    
+                <label class="col-sm-3 control-label">更新人：</label>
+                <div class="col-sm-8">
+                    <input name="uperson" class="form-control" type="text">
+                </div>
+            </div>
+            <div class="form-group">    
+                <label class="col-sm-3 control-label">是否删除：</label>
+                <div class="col-sm-8">
+                    <select name="isDelete" class="form-control m-b" th:with="type=${@dict.getType('sys_yes_no')}" required>
+                        <option th:each="dict : ${type}" th:text="${dict.dictLabel}" th:value="${dict.dictValue}"></option>
+                    </select>
+                </div>
+            </div>
+        </form>
+    </div>
+    <th:block th:include="include :: footer" />
+    <script type="text/javascript">
+        var prefix = ctx + "system/question"
+        $("#form-question-add").validate({
+            focusCleanup: true
+        });
+
+        function submitHandler() {
+            if ($.validate.form()) {
+                $.operate.save(prefix + "/add", $('#form-question-add').serialize());
+            }
+        }
+    </script>
+</body>
+</html>

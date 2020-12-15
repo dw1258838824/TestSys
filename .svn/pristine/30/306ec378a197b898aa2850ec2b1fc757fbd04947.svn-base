@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.project.system.bill.mapper.BillMapper">
+    
+    <resultMap type="Bill" id="BillResult">
+        <result property="billId"    column="bill_id"    />
+        <result property="billNo"    column="bill_no"    />
+        <result property="billType"    column="bill_type"    />
+        <result property="billName"    column="bill_name"    />
+        <result property="billRemark"    column="bill_remark"    />
+        <result property="payUserId"    column="pay_user_id"    />
+        <result property="takeUserId"    column="take_user_id"    />
+        <result property="amount"    column="amount"    />
+        <result property="payTime"    column="pay_time"    />
+        <result property="ctime"    column="ctime"    />
+        <result property="payState"    column="pay_state"    />
+        <result property="refId"    column="ref_id"    />
+    </resultMap>
+
+    <sql id="selectBillVo">
+        select bill_id, bill_no, bill_type, bill_name, bill_remark, pay_user_id, take_user_id, amount, pay_time, ctime, pay_state, ref_id from t_bill
+    </sql>
+
+    <select id="selectBillList" parameterType="Bill" resultMap="BillResult">
+        <include refid="selectBillVo"/>
+        <where>  
+            <if test="billNo != null  and billNo != ''"> and bill_no = #{billNo}</if>
+            <if test="billType != null  and billType != ''"> and bill_type = #{billType}</if>
+            <if test="billName != null  and billName != ''"> and bill_name like concat('%', #{billName}, '%')</if>
+            <if test="billRemark != null  and billRemark != ''"> and bill_remark = #{billRemark}</if>
+            <if test="payUserId != null "> and pay_user_id = #{payUserId}</if>
+            <if test="takeUserId != null "> and take_user_id = #{takeUserId}</if>
+            <if test="amount != null "> and amount = #{amount}</if>
+            <if test="payTime != null "> and pay_time = #{payTime}</if>
+            <if test="ctime != null "> and ctime = #{ctime}</if>
+            <if test="payState != null  and payState != ''"> and pay_state = #{payState}</if>
+            <if test="refId != null "> and ref_id = #{refId}</if>
+        </where>
+    </select>
+    
+    <select id="selectBillById" parameterType="Long" resultMap="BillResult">
+        <include refid="selectBillVo"/>
+        where bill_id = #{billId}
+    </select>
+        
+    <insert id="insertBill" parameterType="Bill">
+        insert into t_bill
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="billId != null ">bill_id,</if>
+            <if test="billNo != null  and billNo != ''">bill_no,</if>
+            <if test="billType != null  and billType != ''">bill_type,</if>
+            <if test="billName != null  and billName != ''">bill_name,</if>
+            <if test="billRemark != null  and billRemark != ''">bill_remark,</if>
+            <if test="payUserId != null ">pay_user_id,</if>
+            <if test="takeUserId != null ">take_user_id,</if>
+            <if test="amount != null ">amount,</if>
+            <if test="payTime != null ">pay_time,</if>
+            <if test="ctime != null ">ctime,</if>
+            <if test="payState != null  and payState != ''">pay_state,</if>
+            <if test="refId != null ">ref_id,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="billId != null ">#{billId},</if>
+            <if test="billNo != null  and billNo != ''">#{billNo},</if>
+            <if test="billType != null  and billType != ''">#{billType},</if>
+            <if test="billName != null  and billName != ''">#{billName},</if>
+            <if test="billRemark != null  and billRemark != ''">#{billRemark},</if>
+            <if test="payUserId != null ">#{payUserId},</if>
+            <if test="takeUserId != null ">#{takeUserId},</if>
+            <if test="amount != null ">#{amount},</if>
+            <if test="payTime != null ">#{payTime},</if>
+            <if test="ctime != null ">#{ctime},</if>
+            <if test="payState != null  and payState != ''">#{payState},</if>
+            <if test="refId != null ">#{refId},</if>
+         </trim>
+    </insert>
+
+    <update id="updateBill" parameterType="Bill">
+        update t_bill
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="billNo != null  and billNo != ''">bill_no = #{billNo},</if>
+            <if test="billType != null  and billType != ''">bill_type = #{billType},</if>
+            <if test="billName != null  and billName != ''">bill_name = #{billName},</if>
+            <if test="billRemark != null  and billRemark != ''">bill_remark = #{billRemark},</if>
+            <if test="payUserId != null ">pay_user_id = #{payUserId},</if>
+            <if test="takeUserId != null ">take_user_id = #{takeUserId},</if>
+            <if test="amount != null ">amount = #{amount},</if>
+            <if test="payTime != null ">pay_time = #{payTime},</if>
+            <if test="ctime != null ">ctime = #{ctime},</if>
+            <if test="payState != null  and payState != ''">pay_state = #{payState},</if>
+            <if test="refId != null ">ref_id = #{refId},</if>
+        </trim>
+        where bill_id = #{billId}
+    </update>
+
+    <delete id="deleteBillById" parameterType="Long">
+        delete from t_bill where bill_id = #{billId}
+    </delete>
+
+    <delete id="deleteBillByIds" parameterType="String">
+        delete from t_bill where bill_id in 
+        <foreach item="billId" collection="array" open="(" separator="," close=")">
+            #{billId}
+        </foreach>
+    </delete>
+    
+</mapper>

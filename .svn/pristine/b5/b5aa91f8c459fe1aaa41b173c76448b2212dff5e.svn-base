@@ -1,0 +1,61 @@
+package com.testsys.common;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import com.baidubce.auth.DefaultBceCredentials;
+import com.baidubce.services.sms.SmsClient;
+import com.baidubce.services.sms.SmsClientConfiguration;
+import com.baidubce.services.sms.model.SendMessageV2Request;
+import com.baidubce.services.sms.model.SendMessageV2Response;
+
+/**
+ * 发送短信（by:百度简单消息服务SMS）
+ * 
+ * @author TestSys
+ *
+ */
+public class SendMessage {
+
+	// SMS服务域名，可根据环境选择具体域名
+	public static final String endPoint = "http://sms.bj.baidubce.com";
+	// 发送账号安全认证的Access Key ID
+	public static final String accessKeyId = "b2d51702bc2b4791b6b047625dfedfde";
+	// 发送账号安全认证的Secret Access Key
+	public static final String secretAccessKy = "e96e9e5b54c6482cafd8d5dbc4cd4cf9";
+
+	public static String sendMessage(String phoneNumber) {
+		// ak、sk等config
+		SmsClientConfiguration config = new SmsClientConfiguration();
+		config.setCredentials(new DefaultBceCredentials(accessKeyId, secretAccessKy));
+		config.setEndpoint(endPoint);
+
+		// 实例化发送客户端
+		SmsClient smsClient = new SmsClient(config);
+
+		// 定义请求参数
+		String invokeId = "80V3tDbF-2w5b-05mJ"; // 发送使用签名的调用ID
+		// String phoneNumber = "13302917698"; 	// 要发送的手机号码(只能填写一个手机号)
+		String templateCode = "smsTpl:76759795-3408-42b9-8ef0-30837d511ef4"; // 本次发送使用的模板Code
+		Map<String, String> vars = new HashMap<String, String>(); // 若模板内容为：您的验证码是${code},在${time}分钟内输入有效
+		int authCode = (int) ((Math.random() * 9 + 1) * 100000);
+		vars.put("code", String.valueOf(authCode));
+
+		// 实例化请求对象
+		SendMessageV2Request request = new SendMessageV2Request();
+		request.withInvokeId(invokeId).withPhoneNumber(phoneNumber).withTemplateCode(templateCode).withContentVar(vars);
+		SendMessageV2Response response = smsClient.sendMessage(request);
+
+		// 解析请求响应 response.isSuccess()为true 表示成功
+		if (response != null && response.isSuccess()) {
+			return String.valueOf(authCode);
+		} else {
+			return "";
+		}
+	}
+
+	public static void main(String[] args) {
+		String sendMessage = sendMessage("13302917698");
+		System.out.println(sendMessage);
+	}
+}

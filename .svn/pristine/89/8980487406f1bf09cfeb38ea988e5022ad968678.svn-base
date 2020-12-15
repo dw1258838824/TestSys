@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org" xmlns:shiro="http://www.pollix.at/thymeleaf/shiro">
+<head>
+    <th:block th:include="include :: header('python运行')" />
+    
+	<script th:src="@{/ruoyi/js/brython.js?v=4.2.0}"></script>
+	<script th:src="@{/ruoyi/js/brython_stdlib.js?v=4.2.0}"></script>
+</head>
+<body class="gray-bg"  onload="brython()">
+<script type="text/python">
+	from browser import document, alert
+	import turtle
+
+	def echo(event):
+		document["result"].value = "";
+		document["turtle-div"].innerHTML = "";
+		code = document["zone"].value
+		exec(code)
+
+	document["mybutton"].bind("click", echo)
+
+	turtle.set_defaults(
+		turtle_canvas_wrapper = document['turtle-div']
+	)
+</script>
+     <div class="container-div">
+        <div class="row">
+            <div class="col-sm-12 search-collapse">
+               	<textarea id="zone" rows="20" style="width:49%;display:none"></textarea>
+				<div id="turtle-div" style="float:left;border:1px solid green;width:100%">画布</div>
+				<textarea id="result" rows="10" style="width:100%" readonly="readonly">正在运行...</textarea>
+				<button id="mybutton" class="hide">运行</button>
+            </div>
+        </div>
+    </div>
+ 
+    <th:block th:include="include :: footer" />
+    <script th:inline="javascript">
+        var prefix = ctx + "/api/python/run";
+		
+        function getUrlParam(name){
+            // 用该属性获取页面 URL 地址从问号 (?) 开始的 URL（查询部分）
+            var url = window.location.search;
+            // 正则筛选地址栏
+            var reg = new RegExp("(^|&)"+ name +"=([^&]*)(&|$)");
+            // 匹配目标参数
+            var result = url.substr(1).match(reg);
+            //返回参数值
+            return result ? decodeURIComponent(result[2]) : null;
+        }
+		function submitHandler() {
+			var zone = $("#zone").val();
+			parent.$("textarea[name='"+getUrlParam("inputName")+"']").val(zone);
+			$.modal.close();
+		}
+        $(function() {
+        	$("#zone").val(parent.$("textarea[name='"+getUrlParam("inputName")+"']").val());
+        	setTimeout(function(){
+	        	$("#mybutton").click();
+        	},500)
+        });
+    </script>
+</body>
+</html>

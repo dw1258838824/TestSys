@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.project.system.question.mapper.TQuestionMapper">
+    
+    <resultMap type="TQuestion" id="TQuestionResult">
+        <result property="questionId"    column="question_id"    />
+        <result property="questionTitle"    column="question_title"    />
+        <result property="questionHtml"    column="question_html"    />
+        <result property="questionAnswer"    column="question_answer"    />
+        <result property="questionAnswerAnalysis"    column="question_answer_analysis"    />
+        <result property="questionTypeId"    column="question_type_id"    />
+        <result property="levelId"    column="level_id"    />
+        <result property="subjectId"    column="subject_id"    />
+        <result property="questionPointId"    column="question_point_id"    />
+        <result property="questionFile"    column="question_file"    />
+        <result property="ctime"    column="ctime"    />
+        <result property="creator"    column="creator"    />
+        <result property="utime"    column="utime"    />
+        <result property="uperson"    column="uperson"    />
+        <result property="isDelete"    column="is_delete"    />
+        
+        <!-- 冗余字段 -->
+        <result property="questionTypeName"    column="question_type_name"    />
+        <result property="questionPointName"    column="question_point_name"    />
+        <result property="levelName"    column="level_name"    />
+        <result property="subjectName"    column="subject_name"    />
+        
+       
+    </resultMap>
+
+    <sql id="selectTQuestionVo">
+        SELECT
+			question_id,
+			question_title,
+			question_html,
+			question_answer,
+			question_answer_analysis,
+			q.question_type_id,
+			q.level_id,
+			q.subject_id,
+			q.question_point_id,
+			question_file,
+			ctime,
+			creator,
+			utime,
+			uperson,
+			is_delete,
+			qt.question_type_name,
+			qp.question_point_name,
+			l.level_name,
+			s.subject_name
+		FROM
+			t_question q
+		LEFT JOIN t_question_type qt on qt.question_type_id = q.question_type_id
+		LEFT JOIN t_question_point qp on qp.question_point_id = q.question_point_id
+		LEFT JOIN t_level l on l.level_id = q.level_id
+		LEFT JOIN t_subject s on s.subject_id = q.subject_id
+    </sql>
+
+    <select id="selectTQuestionList" parameterType="TQuestion" resultMap="TQuestionResult">
+        <include refid="selectTQuestionVo"/>
+        <where>  
+            <if test="questionTitle != null  and questionTitle != ''"> and question_title like concat('%', #{questionTitle}, '%')</if>
+            <if test="questionTypeId != null "> and q.question_type_id = #{questionTypeId}</if>
+            <if test="levelId != null "> and q.level_id = #{levelId}</if>
+            <if test="subjectId != null "> and q.subject_id = #{subjectId}</if>
+            <if test="questionPointId != null "> and ( q.question_point_id = #{questionPointId} or qp.question_point_parent_id = #{questionPointId} )</if>
+            <if test="params.beginCtime != null and params.beginCtime != '' "> and q.ctime >= #{params.beginCtime}</if>
+            <if test="params.endCtime != null and params.endCtime != '' "> and q.ctime <![CDATA[ <= ]]>  CONCAT(#{params.endCtime},' 23:59:59')</if>
+            <if test="creator != null  and creator != ''"> and creator = #{creator}</if>
+            <if test="isDelete != null  and isDelete != ''"> and is_delete = #{isDelete}</if>
+        </where>
+        ORDER BY question_id DESC
+    </select>
+    
+    <select id="selectTQuestionById" parameterType="Long" resultMap="TQuestionResult">
+        <include refid="selectTQuestionVo"/>
+        where question_id = #{questionId}
+    </select>
+        
+    <insert id="insertTQuestion" parameterType="TQuestion" useGeneratedKeys="true" keyProperty="questionId">
+        insert into t_question
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="questionTitle != null  and questionTitle != ''">question_title,</if>
+            <if test="questionHtml != null  and questionHtml != ''">question_html,</if>
+            <if test="questionAnswer != null  and questionAnswer != ''">question_answer,</if>
+            <if test="questionAnswerAnalysis != null  and questionAnswerAnalysis != ''">question_answer_analysis,</if>
+            <if test="questionTypeId != null ">question_type_id,</if>
+            <if test="levelId != null ">level_id,</if>
+            <if test="subjectId != null ">subject_id,</if>
+            <if test="questionPointId != null ">question_point_id,</if>
+            <if test="questionFile != null  and questionFile != ''">question_file,</if>
+            <if test="ctime != null ">ctime,</if>
+            <if test="creator != null  and creator != ''">creator,</if>
+            <if test="utime != null ">utime,</if>
+            <if test="uperson != null  and uperson != ''">uperson,</if>
+            <if test="isDelete != null  and isDelete != ''">is_delete,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="questionTitle != null  and questionTitle != ''">#{questionTitle},</if>
+            <if test="questionHtml != null  and questionHtml != ''">#{questionHtml},</if>
+            <if test="questionAnswer != null  and questionAnswer != ''">#{questionAnswer},</if>
+            <if test="questionAnswerAnalysis != null  and questionAnswerAnalysis != ''">#{questionAnswerAnalysis},</if>
+            <if test="questionTypeId != null ">#{questionTypeId},</if>
+            <if test="levelId != null ">#{levelId},</if>
+            <if test="subjectId != null ">#{subjectId},</if>
+            <if test="questionPointId != null ">#{questionPointId},</if>
+            <if test="questionFile != null  and questionFile != ''">#{questionFile},</if>
+            <if test="ctime != null ">#{ctime},</if>
+            <if test="creator != null  and creator != ''">#{creator},</if>
+            <if test="utime != null ">#{utime},</if>
+            <if test="uperson != null  and uperson != ''">#{uperson},</if>
+            <if test="isDelete != null  and isDelete != ''">#{isDelete},</if>
+         </trim>
+    </insert>
+
+    <update id="updateTQuestion" parameterType="TQuestion">
+        update t_question
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="questionTitle != null  and questionTitle != ''">question_title = #{questionTitle},</if>
+            <if test="questionHtml != null  and questionHtml != ''">question_html = #{questionHtml},</if>
+            <if test="questionAnswer != null  and questionAnswer != ''">question_answer = #{questionAnswer},</if>
+            <if test="questionAnswerAnalysis != null  and questionAnswerAnalysis != ''">question_answer_analysis = #{questionAnswerAnalysis},</if>
+            <if test="questionTypeId != null ">question_type_id = #{questionTypeId},</if>
+            <if test="levelId != null ">level_id = #{levelId},</if>
+            <if test="subjectId != null ">subject_id = #{subjectId},</if>
+            <if test="questionPointId != null ">question_point_id = #{questionPointId},</if>
+            <if test="questionFile != null  and questionFile != ''">question_file = #{questionFile},</if>
+            <if test="ctime != null ">ctime = #{ctime},</if>
+            <if test="creator != null  and creator != ''">creator = #{creator},</if>
+            <if test="utime != null ">utime = #{utime},</if>
+            <if test="uperson != null  and uperson != ''">uperson = #{uperson},</if>
+            <if test="isDelete != null  and isDelete != ''">is_delete = #{isDelete},</if>
+        </trim>
+        where question_id = #{questionId}
+    </update>
+
+    <delete id="deleteTQuestionById" parameterType="Long">
+        delete from t_question where question_id = #{questionId}
+    </delete>
+
+    <delete id="deleteTQuestionByIds" parameterType="String">
+        delete from t_question where question_id in 
+        <foreach item="questionId" collection="array" open="(" separator="," close=")">
+            #{questionId}
+        </foreach>
+    </delete>
+    
+    <select id="selectRandList" parameterType="java.util.Map" resultMap="TQuestionResult">
+    	<foreach collection="typeList" index="index" item="type"  separator=" UNION ">
+    		<if test=" type.defaultCount > 0 ">
+		  	(
+		  	 SELECT question_id,question_title,question_html,question_answer,question_answer_analysis,q.question_type_id,q.level_id,q.subject_id,q.question_point_id,question_file,qt.question_type_name
+			 FROM t_question q LEFT JOIN t_question_type qt on qt.question_type_id = q.question_type_id
+			 WHERE  q.question_type_id = #{type.questionTypeId}
+	            <if test="level != null  and level != ''"> AND level_id = #{level}  </if>
+	            <if test="subjectId != null  and subjectId != ''"> AND subject_id = #{subjectId}  </if>
+			 ORDER BY RAND() LIMIT #{type.defaultCount}
+		  	)
+		  	</if>
+		</foreach>
+    </select>
+</mapper>

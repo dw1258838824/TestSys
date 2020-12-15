@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org" xmlns:shiro="http://www.pollix.at/thymeleaf/shiro">
+<head>
+    <th:block th:include="include :: header('老师统计列表')" />
+</head>
+<body class="gray-bg">
+     <div class="container-div">
+        <div class="row">
+            <div class="col-sm-12 search-collapse">
+                <form id="formId">
+                    <div class="select-list">
+                        <ul>
+                            <li>
+                                <label>机构：</label>
+                                <div class="input-group" style="width: 200px" onclick="selectDeptTree()">
+                                    <input id="treeId" name="deptId" type="text" style="display:none" value="" />
+                                    <input class="form-control" type="text" id="treeName" readonly="true">
+                                    <span class="input-group-addon"><i class="fa fa-search"></i></span>
+                                </div>
+                            </li>
+                            <li>
+                                <a class="btn btn-primary btn-rounded btn-sm" onclick="$.table.search();setTimeout(function(){ total(); },1000);"><i class="fa fa-search"></i>&nbsp;搜索</a>
+                                <a class="btn btn-warning btn-rounded btn-sm" onclick="$.form.reset();setTimeout(function(){ total(); },1000);"><i class="fa fa-refresh"></i>&nbsp;重置</a>
+                            </li>
+                        </ul>
+                    </div>
+                </form>
+            </div>
+
+            <div class="btn-group-sm" id="toolbar" role="group">
+                <a class="btn btn-warning" onclick="$.table.exportExcel()" shiro:hasPermission="system:teacherschart:export">
+                    <i class="fa fa-download"></i> 导出
+                </a>
+                <font>合计老师数量：<span id="allcount"></span></font>
+            </div>
+            <div class="col-sm-12 select-table table-striped">
+                <table id="bootstrap-table"></table>
+            </div>
+        </div>
+    </div>
+    <th:block th:include="include :: footer" />
+    <script th:inline="javascript">
+        var editFlag = [[${@permission.hasPermi('system:teacherschart:edit')}]];
+        var removeFlag = [[${@permission.hasPermi('system:teacherschart:remove')}]];
+        var prefix = ctx + "system/teacherschart";
+        var deptsDatas = [[${depts}]];
+        var prefixDept = ctx + "system/dept";
+        /*部门管理-新增-选择父部门树*/
+        function selectDeptTree() {
+            var deptId = $("#treeId").val();
+            if(deptId == ""){
+                deptId = 100;
+            }
+            var options = {
+                title: '机构选择',
+                width: "380",
+                url: prefixDept + "/selectDeptTree/" + deptId,
+                callBack: doSubmit
+            };
+            $.modal.openOptions(options);
+        }
+        function doSubmit(index, layero){
+            var body = layer.getChildFrame('body', index);
+            $("#treeId").val(body.find('#treeId').val());
+            $("#treeName").val(body.find('#treeName').val());
+            layer.close(index);
+            $.table.refresh();
+            setTimeout(function(){ total(); },1000);
+        }
+        $(function() {
+            var options = {
+                url: prefix + "/list",
+                createUrl: prefix + "/add",
+                updateUrl: prefix + "/edit/{id}",
+                removeUrl: prefix + "/remove",
+                exportUrl: prefix + "/export",
+                modalName: "老师统计",
+                columns: [{
+                    checkbox: true
+                },
+                {
+                    field: 'deptId', 
+                    title: '机构',
+                    formatter: function(value, row, index) {
+                    	var deptName = getDeptNameById(deptsDatas, value);
+                        return deptName==null||deptName==''?'无':deptName;
+                    }
+                },
+                {
+                    field: 'counts', 
+                    title: '老师人数',
+                    formatter: function(value, row, index) {
+                        return "<font class='count'>"+value+"</font>";
+                    }
+                }]
+            };
+            $.table.init(options);
+            setTimeout(function(){ total(); },1000);
+        });
+        function total(){
+        	var c = 0.00;
+        	$('.count').each(function(){
+        		var count = parseFloat($(this).html());
+        		c += count;
+        	});
+        	$("#allcount").html(c);
+        }
+    </script>
+</body>
+</html>

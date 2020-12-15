@@ -1,0 +1,18 @@
+package com.ruoyi.project.system.api.controller;
+
+import java.util.Map;
+
+import org.apache.commons.collections.map.HashedMap;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+@RequestMapping("/api/wechat")
+public class WeChatApi {
+	
+	public Map<String,Object> config(){
+		Map<String,Object> restMap = new HashedMap();
+		return null;
+	}
+	
+}

@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.project.system.subject.mapper.TSubjectMapper">
+    
+    <resultMap type="TSubject" id="TSubjectResult">
+        <result property="subjectId"    column="subject_id"    />
+        <result property="subjectName"    column="subject_name"    />
+        <result property="subjectRemark"    column="subject_remark"    />
+    </resultMap>
+
+    <sql id="selectTSubjectVo">
+        select subject_id, subject_name, subject_remark from t_subject
+    </sql>
+
+    <select id="selectTSubjectList" parameterType="TSubject" resultMap="TSubjectResult">
+        <include refid="selectTSubjectVo"/>
+        <where>  
+            <if test="subjectName != null  and subjectName != ''"> and subject_name like concat('%', #{subjectName}, '%')</if>
+        </where>
+    </select>
+    
+    <select id="selectTSubjectById" parameterType="Integer" resultMap="TSubjectResult">
+        <include refid="selectTSubjectVo"/>
+        where subject_id = #{subjectId}
+    </select>
+        
+    <insert id="insertTSubject" parameterType="TSubject" useGeneratedKeys="true" keyProperty="subjectId">
+        insert into t_subject
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="subjectName != null  and subjectName != ''">subject_name,</if>
+            <if test="subjectRemark != null  and subjectRemark != ''">subject_remark,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="subjectName != null  and subjectName != ''">#{subjectName},</if>
+            <if test="subjectRemark != null  and subjectRemark != ''">#{subjectRemark},</if>
+         </trim>
+    </insert>
+
+    <update id="updateTSubject" parameterType="TSubject">
+        update t_subject
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="subjectName != null  and subjectName != ''">subject_name = #{subjectName},</if>
+            <if test="subjectRemark != null  and subjectRemark != ''">subject_remark = #{subjectRemark},</if>
+        </trim>
+        where subject_id = #{subjectId}
+    </update>
+
+    <delete id="deleteTSubjectById" parameterType="Integer">
+        delete from t_subject where subject_id = #{subjectId}
+    </delete>
+
+    <delete id="deleteTSubjectByIds" parameterType="String">
+        delete from t_subject where subject_id in 
+        <foreach item="subjectId" collection="array" open="(" separator="," close=")">
+            #{subjectId}
+        </foreach>
+    </delete>
+    
+</mapper>

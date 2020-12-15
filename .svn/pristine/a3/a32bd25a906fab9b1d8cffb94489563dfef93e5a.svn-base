@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org" xmlns:shiro="http://www.pollix.at/thymeleaf/shiro">
+<head>
+    <th:block th:include="include :: header('机构批量报名列表')" />
+</head>
+<body class="gray-bg">
+     <div class="container-div">
+        <div class="row">
+            <div class="col-sm-12 search-collapse">
+                <form id="formId">
+                    <div class="select-list">
+                        <ul>
+                            <li>
+                                <label>对应考试：</label>
+                                <input id="examTitle" name="examTitle" class="form-control" type="text" required readOnly onclick="selectExam()">
+                    			<input id="examId" name="examId" class="form-control" type="hidden" required>
+                            </li>
+                            <li>
+                                <label>报名学生：</label>
+                                <input type="text" name="studentId"/>
+                            </li>
+                            <li>
+                                <label>所属机构：</label>
+                                <input type="text" name="deptId"/>
+                            </li>
+                            <li>
+                                <label>申请人：</label>
+                                <input type="text" name="operateUserId"/>
+                            </li>
+                            <li class="select-time">
+                                <label>申请时间：</label>
+                                <input type="text" class="time-input" id="startTime" placeholder="开始时间" name="params[beginOperateTime]"/>
+                                <span>-</span>
+                                <input type="text" class="time-input" id="endTime" placeholder="结束时间" name="params[endOperateTime]"/>
+                            </li>
+                            <li>
+                                <label>申请状态：</label>
+                                <select name="operateState" th:with="type=${@dict.getType('sys_operate_state')}">
+                                    <option value="">所有</option>
+                                    <option th:each="dict : ${type}" th:text="${dict.dictLabel}" th:value="${dict.dictValue}"></option>
+                                </select>
+                            </li>
+                            <li>
+                                <label>审核人：</label>
+                                <input type="text" name="replayUserId"/>
+                            </li>
+                            <li>
+                                <a class="btn btn-primary btn-rounded btn-sm" onclick="$.table.search()"><i class="fa fa-search"></i>&nbsp;搜索</a>
+                                <a class="btn btn-warning btn-rounded btn-sm" onclick="$.form.reset()"><i class="fa fa-refresh"></i>&nbsp;重置</a>
+                            </li>
+                        </ul>
+                    </div>
+                </form>
+            </div>
+
+            <div class="btn-group-sm" id="toolbar" role="group">
+                <a class="btn btn-success" onclick="$.operate.addTab()" shiro:hasPermission="system:reg:add">
+                    <i class="fa fa-plus"></i> 添加
+                </a>
+                <a class="btn btn-primary single disabled" onclick="$.operate.edit()" shiro:hasPermission="system:reg:edit">
+                    <i class="fa fa-edit"></i> 修改
+                </a>
+                <a class="btn btn-danger multiple disabled" onclick="$.operate.removeAll()" shiro:hasPermission="system:reg:removeall">
+                    <i class="fa fa-remove"></i> 删除
+                </a>
+            </div>
+            <div class="col-sm-12 select-table table-striped">
+                <table id="bootstrap-table"></table>
+            </div>
+        </div>
+    </div>
+    <th:block th:include="include :: footer" />
+    <script th:inline="javascript">
+        var editFlag = [[${@permission.hasPermi('system:reg:edit')}]];
+        var removeFlag = [[${@permission.hasPermi('system:reg:remove')}]];
+        var operateStateDatas = [[${@dict.getType('sys_operate_state')}]];
+        var prefix = ctx + "system/reg";
+
+        function selectExam(){
+			$.modal.open("选择考试", ctx + "system/exam");//报名截止前的考试
+		}
+        $(function() {
+            var options = {
+                url: prefix + "/list",
+                createUrl: prefix + "/add",
+                updateUrl: prefix + "/edit/{id}",
+                removeUrl: prefix + "/remove",
+                exportUrl: prefix + "/export",
+                modalName: "机构批量报名",
+                columns: [{
+                    checkbox: true
+                },
+                {
+                    field: 'deptRegId', 
+                    title: '机构报名编号',
+                    visible: false
+                },
+                {
+                    field: 'params.examTitle', 
+                    title: '对应考试'
+                },
+                {
+                    field: 'params.argueEndTime', 
+                    title: '报名截止时间'
+                },
+                {
+                    field: 'params.studentName', 
+                    title: '报名学生'
+                },
+                {
+                    field: 'params.deptName', 
+                    title: '申请人机构'
+                },
+                {
+                    field: 'params.operateUserName', 
+                    title: '申请人'
+                },
+                {
+                    field: 'operateTime', 
+                    title: '申请时间'
+                },
+                {
+                    field: 'operateMark', 
+                    title: '申请备注'
+                },
+                {
+                    field: 'operateState', 
+                    title: '申请状态',
+                    formatter: function(value, row, index) {
+                       return $.table.selectDictLabel(operateStateDatas, value);
+                    }
+                },
+                {
+                    field: 'params.replayUserName', 
+                    title: '审核人'
+                },
+                {
+                    field: 'replayTime', 
+                    title: '审核时间'
+                },
+                {
+                    title: '操作',
+                    align: 'center',
+                    formatter: function(value, row, index) {
+                        var actions = [];
+                        actions.push('<a class="btn btn-success btn-xs ' + editFlag + '" href="javascript:void(0)" onclick="$.operate.edit(\'' + row.deptRegId + '\')"><i class="fa fa-edit"></i>编辑</a> ');
+                        actions.push('<a class="btn btn-danger btn-xs ' + removeFlag + '" href="javascript:void(0)" onclick="$.operate.remove(\'' + row.deptRegId + '\')"><i class="fa fa-remove"></i>删除</a>');
+                        return actions.join('');
+                    }
+                }]
+            };
+            $.table.init(options);
+        });
+    </script>
+</body>
+</html>

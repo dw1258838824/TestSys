@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.project.system.company.mapper.TCompanyMapper">
+    
+    <resultMap type="TCompany" id="TCompanyResult">
+        <result property="companyId"    column="company_id"    />
+        <result property="cname"    column="cname"    />
+        <result property="synopsis"    column="synopsis"    />
+        <result property="people"    column="people"    />
+        <result property="tel"    column="tel"    />
+        <result property="remarks"    column="remarks"    />
+        <result property="ctime"    column="ctime"    />
+    </resultMap>
+
+    <sql id="selectTCompanyVo">
+        select company_id, cname, synopsis, people, tel, remarks, ctime from t_company
+    </sql>
+
+    <select id="selectTCompanyList" parameterType="TCompany" resultMap="TCompanyResult">
+        <include refid="selectTCompanyVo"/>
+        <where>  
+            <if test="cname != null  and cname != ''"> and cname like concat('%', #{cname}, '%')</if>
+        </where>
+    </select>
+    
+    <select id="selectTCompanyById" parameterType="Long" resultMap="TCompanyResult">
+        <include refid="selectTCompanyVo"/>
+        where company_id = #{companyId}
+    </select>
+        
+    <insert id="insertTCompany" parameterType="TCompany" useGeneratedKeys="true" keyProperty="companyId">
+        insert into t_company
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="cname != null  and cname != ''">cname,</if>
+            <if test="synopsis != null  and synopsis != ''">synopsis,</if>
+            <if test="people != null  and people != ''">people,</if>
+            <if test="tel != null  and tel != ''">tel,</if>
+            <if test="remarks != null  and remarks != ''">remarks,</if>
+            <if test="ctime != null ">ctime,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="cname != null  and cname != ''">#{cname},</if>
+            <if test="synopsis != null  and synopsis != ''">#{synopsis},</if>
+            <if test="people != null  and people != ''">#{people},</if>
+            <if test="tel != null  and tel != ''">#{tel},</if>
+            <if test="remarks != null  and remarks != ''">#{remarks},</if>
+            <if test="ctime != null ">#{ctime},</if>
+         </trim>
+    </insert>
+
+    <update id="updateTCompany" parameterType="TCompany">
+        update t_company
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="cname != null  and cname != ''">cname = #{cname},</if>
+            <if test="synopsis != null  and synopsis != ''">synopsis = #{synopsis},</if>
+            <if test="people != null  and people != ''">people = #{people},</if>
+            <if test="tel != null  and tel != ''">tel = #{tel},</if>
+            <if test="remarks != null  and remarks != ''">remarks = #{remarks},</if>
+            <if test="ctime != null ">ctime = #{ctime},</if>
+        </trim>
+        where company_id = #{companyId}
+    </update>
+
+    <delete id="deleteTCompanyById" parameterType="Long">
+        delete from t_company where company_id = #{companyId}
+    </delete>
+
+    <delete id="deleteTCompanyByIds" parameterType="String">
+        delete from t_company where company_id in 
+        <foreach item="companyId" collection="array" open="(" separator="," close=")">
+            #{companyId}
+        </foreach>
+    </delete>
+    
+</mapper>

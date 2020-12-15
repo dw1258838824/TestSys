@@ -1,0 +1,99 @@
+package com.ruoyi.project.system.api.controller;
+
+import com.ruoyi.framework.configure.StudentSession;
+import com.ruoyi.framework.shiro.service.RegisterService;
+import com.ruoyi.project.system.student.domain.Student;
+import com.ruoyi.project.system.student.service.IStudentService;
+import com.ruoyi.project.system.user.domain.User;
+import com.ruoyi.project.system.user.service.IUserService;
+import com.testsys.common.Cache;
+import com.testsys.utils.ApiResult;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.web.bind.annotation.*;
+import javax.servlet.http.HttpServletResponse;
+import java.util.Map;
+
+@RestController
+@RequestMapping("/api/student")
+public class StudentApi {
+
+    @Autowired
+    private IStudentService studentService;
+    @Autowired
+    private IUserService userService;
+    @Autowired
+    private RegisterService registerService;
+
+    @Value("${wechat.domainName}")
+    private String domainName;
+
+    @GetMapping("/update")
+    public ApiResult updateStudentInfo(String key, String phone,String phoneCode, HttpServletResponse response){
+        Map<String,Object> token = (Map)Cache.get(key);
+        String weChatId = token.get("openid").toString();
+        String captcha = Cache.get(phone).toString();
+        if(StringUtils.isEmpty(weChatId)){
+            return new ApiResult(500,"微信登陆授权信息有误");
+        }else if(StringUtils.isEmpty(captcha) || !captcha.equals(phoneCode)){
+            return new ApiResult(500,"验证码错误");
+        }
+        Student student = studentService.selectStudentByMobile(phone);
+        if(null == student){
+            return new ApiResult(500,"用户不存在");
+        }
+        student.setWechatId(weChatId);
+        studentService.updateWeChatIdByStudent(student);
+        Cache.remove(key);
+        Cache.remove(phone);
+        student = studentService.selectStudentByMobile(phone);
+        StudentSession ss = new StudentSession();
+        ss.setStudentId(student.getStudentId());
+        ss.setWechatId(student.getWechatId());
+        ss.createWebToken(domainName,response);
+        return new ApiResult(200,"成功");
+    }
+
+    @PostMapping("/registered")
+    public ApiResult registered(@RequestBody Student student, HttpServletResponse response){
+        String key = student.getParams().get("key").toString();
+        String password = student.getParams().get("password").toString();
+        //查询用户是否已经存在
+        Student sd = studentService.selectStudentByMobile(student.getMobile());
+        if(null != sd){
+            return new ApiResult(500,"用户已存在");
+        }
+        //从内存里面获取微信openid和短信验证码
+        Map<String,Object> token = (Map) Cache.get(key);
+        student.setWechatId(token.get("openid").toString());
+        student.setStudentName(token.get("nickname").toString());
+        //校验
+        if(StringUtils.isEmpty(token.get("openid").toString())){
+            return new ApiResult(500,"微信登陆授权信息有误");
+        }else if(StringUtils.isEmpty(password)){
+            return new ApiResult(500,"请输入密码");
+        }
+        User user = new User();
+        user.setLoginName(student.getMobile());
+        user.setPassword(password);
+        user.setPhonenumber(student.getMobile());
+        user.setSex(student.getSex());
+        user.setUserType("01");
+        user.setStatus("0");
+        user.setUserName(token.get("nickname").toString());
+        user.setPhoneCode(student.getParams().get("code").toString());
+        user.setRemark("学员");
+        user.setStudent(student);
+        String msg = registerService.register(user);
+        if(StringUtils.isEmpty(msg)) {
+            StudentSession ss = new StudentSession();
+            ss.setStudentId(student.getStudentId());
+            ss.setWechatId(student.getWechatId());
+            ss.createWebToken(domainName,response);
+            Cache.remove(key);
+            return new ApiResult(200, "成功");
+        }
+        return new ApiResult(500, msg);
+    }
+}

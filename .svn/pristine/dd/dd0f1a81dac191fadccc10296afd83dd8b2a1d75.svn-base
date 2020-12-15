@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.project.system.student.mapper.StudentMapper">
+    
+    <resultMap type="Student" id="StudentResult">
+        <result property="studentId"    column="student_id"    />
+        <result property="studentName"    column="student_name"    />
+        <result property="levelId"    column="level_id"    />
+        <result property="userId"    column="user_id"    />
+        <result property="birthday"    column="birthday"    />
+        <result property="sex"    column="sex"    />
+        <result property="mobile"    column="mobile"    />
+        <result property="wechatId"    column="wechat_id"    />
+        <result property="idcard"    column="idcard"    />
+        <result property="idcardImg"    column="idcard_img"    />
+        <result property="certImg"    column="cert_img"    />
+        <result property="ctime"    column="ctime"    />
+        <result property="fromUserId"    column="from_user_id"    />
+        <result property="faceToken" column="face_token"/>
+        <result property="uid" column="uid"/>
+    </resultMap>
+
+    <sql id="selectStudentVo">
+        select student_id, student_name, level_id, user_id, birthday, sex, mobile, wechat_id, idcard, idcard_img, cert_img, ctime, from_user_id, face_token,uid from t_student
+    </sql>
+
+    <select id="selectStudentList" parameterType="Student" resultMap="StudentResult">
+        <include refid="selectStudentVo"/>
+        <where>  
+            <if test="studentName != null  and studentName != ''"> and student_name like concat('%', #{studentName}, '%')</if>
+            <if test="levelId != null "> and level_id = #{levelId}</if>
+            <if test="userId != null "> and user_id = #{userId}</if>
+            <if test="birthday != null "> and birthday = #{birthday}</if>
+            <if test="sex != null  and sex != ''"> and sex = #{sex}</if>
+            <if test="mobile != null  and mobile != ''"> and mobile = #{mobile}</if>
+            <if test="wechatId != null  and wechatId != ''"> and wechat_id = #{wechatId}</if>
+            <if test="idcard != null  and idcard != ''"> and idcard = #{idcard}</if>
+            <if test="idcardImg != null  and idcardImg != ''"> and idcard_img = #{idcardImg}</if>
+            <if test="certImg != null  and certImg != ''"> and cert_img = #{certImg}</if>
+            <if test="ctime != null "> and ctime = #{ctime}</if>
+            <if test="fromUserId != null "> and from_user_id = #{fromUserId}</if>
+        </where>
+    </select>
+    
+    <select id="selectStudentById" parameterType="Long" resultMap="StudentResult">
+        <include refid="selectStudentVo"/>
+        where student_id = #{studentId}
+    </select>
+
+    <select id="selectStudentByMobile" parameterType="String" resultMap="StudentResult">
+        <include refid="selectStudentVo"/>
+        where mobile = #{mobile}
+    </select>
+    
+    <select id="selectUserById" parameterType="Long" resultMap="StudentResult">
+        <include refid="selectStudentVo"/>
+        where user_id = #{userId}
+    </select>
+
+    <select id="selectStudentByWeChatId" parameterType="Student" resultMap="StudentResult">
+        <include refid="selectStudentVo"/>
+        where wechat_id = #{wechatId}
+    </select>
+        
+    <insert id="insertStudent" parameterType="Student" useGeneratedKeys="true" keyProperty="studentId">
+        insert into t_student
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="studentName != null  and studentName != ''">student_name,</if>
+            <if test="levelId != null ">level_id,</if>
+            <if test="userId != null ">user_id,</if>
+            <if test="birthday != null ">birthday,</if>
+            <if test="sex != null  and sex != ''">sex,</if>
+            <if test="mobile != null  and mobile != ''">mobile,</if>
+            <if test="wechatId != null  and wechatId != ''">wechat_id,</if>
+            <if test="idcard != null  and idcard != ''">idcard,</if>
+            <if test="idcardImg != null  and idcardImg != ''">idcard_img,</if>
+            <if test="certImg != null  and certImg != ''">cert_img,</if>
+            <if test="ctime != null ">ctime,</if>
+            <if test="fromUserId != null ">from_user_id,</if>
+            <if test="uid != null  and uid != '' ">uid ,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="studentName != null  and studentName != ''">#{studentName},</if>
+            <if test="levelId != null ">#{levelId},</if>
+            <if test="userId != null ">#{userId},</if>
+            <if test="birthday != null ">#{birthday},</if>
+            <if test="sex != null  and sex != ''">#{sex},</if>
+            <if test="mobile != null  and mobile != ''">#{mobile},</if>
+            <if test="wechatId != null  and wechatId != ''">#{wechatId},</if>
+            <if test="idcard != null  and idcard != ''">#{idcard},</if>
+            <if test="idcardImg != null  and idcardImg != ''">#{idcardImg},</if>
+            <if test="certImg != null  and certImg != ''">#{certImg},</if>
+            <if test="ctime != null ">#{ctime},</if>
+            <if test="fromUserId != null ">#{fromUserId},</if>
+            <if test="uid != null  and uid != '' ">#{uid},</if>
+         </trim>
+    </insert>
+
+    <update id="updateStudent" parameterType="Student">
+        update t_student
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="studentName != null  and studentName != ''">student_name = #{studentName},</if>
+            <if test="levelId != null ">level_id = #{levelId},</if>
+            <if test="userId != null ">user_id = #{userId},</if>
+            <if test="birthday != null ">birthday = #{birthday},</if>
+            <if test="sex != null  and sex != ''">sex = #{sex},</if>
+            <if test="mobile != null  and mobile != ''">mobile = #{mobile},</if>
+            <if test="wechatId != null  and wechatId != ''">wechat_id = #{wechatId},</if>
+            <if test="idcard != null  and idcard != ''">idcard = #{idcard},</if>
+            <if test="idcardImg != null  and idcardImg != ''">idcard_img = #{idcardImg},</if>
+            <if test="certImg != null  and certImg != ''">cert_img = #{certImg},</if>
+            <if test="ctime != null ">ctime = #{ctime},</if>
+            <if test="fromUserId != null ">from_user_id = #{fromUserId},</if>
+            <if test="uid != null  and uid != '' ">uid = #{uid},</if>
+        </trim>
+        where student_id = #{studentId}
+    </update>
+
+    <update id="updateWeChatIdByStudent" parameterType="Student">
+        update t_student
+        <trim prefix="SET" suffixOverrides=",">
+            wechat_id = #{wechatId}
+        </trim>
+        where student_id = #{studentId}
+    </update>
+    
+    <update id="updateFaceTokenByStudent" parameterType="Student">
+    	update t_student
+        <trim prefix="SET" suffixOverrides=",">
+            face_token = #{faceToken}
+        </trim>
+        where student_id = #{studentId}
+    </update>
+    
+
+    <delete id="deleteStudentById" parameterType="Long">
+        delete from t_student where student_id = #{studentId}
+    </delete>
+
+    <delete id="deleteStudentByIds" parameterType="String">
+        delete from t_student where student_id in 
+        <foreach item="studentId" collection="array" open="(" separator="," close=")">
+            #{studentId}
+        </foreach>
+    </delete>
+
+
+    <select id="selectStudentLevel" parameterType="StudentLevel" resultType="StudentLevel">
+        SELECT
+            student_id AS studentId,
+            subject_id AS subjectId,
+            s.level_id AS levelId,
+            l.level_value AS levelValue
+        FROM t_student_level s
+        LEFT JOIN t_level AS l ON s.level_id = l.level_id
+        <where>
+            <if test="studentId != null">
+                s.student_id = #{studentId}
+            </if>
+            <if test="subjectId != null">
+                AND s.subject_id = #{subjectId}
+            </if>
+        </where>
+    </select>
+    
+</mapper>

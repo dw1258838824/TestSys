@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org" xmlns:shiro="http://www.pollix.at/thymeleaf/shiro">
+<head>
+    <th:block th:include="include :: header('角色人员统计列表')" />
+</head>
+<body class="gray-bg">
+     <div class="container-div">
+        <div class="row">
+            <div class="col-sm-12 search-collapse">
+                <form id="formId">
+                    <div class="select-list">
+                        <ul>
+                            <li>
+                                <label>角色：</label>
+                                <select name="roleId" th:with="role=${roles}">
+									<option value="">所有</option>
+									<option th:each="r : ${role}" th:text="${r.roleName}" th:value="${r.roleId}"></option>
+								</select>
+                            </li>
+                            <li>
+                                <a class="btn btn-primary btn-rounded btn-sm" onclick="$.table.search()"><i class="fa fa-search"></i>&nbsp;搜索</a>
+                                <a class="btn btn-warning btn-rounded btn-sm" onclick="$.form.reset()"><i class="fa fa-refresh"></i>&nbsp;重置</a>
+                            </li>
+                        </ul>
+                    </div>
+                </form>
+            </div>
+
+            <div class="btn-group-sm" id="toolbar" role="group">
+                <font>总学员数：[[${studentCount}]]</font> &nbsp;  &nbsp;  &nbsp; 
+                <font>后台用户数：[[${rootCount}]]</font>
+            </div>
+            <div class="col-sm-12 select-table table-striped">
+                <table id="bootstrap-table"></table>
+            </div>
+        </div>
+    </div>
+    <th:block th:include="include :: footer" />
+    <script th:inline="javascript">
+        var editFlag = [[${@permission.hasPermi('system:countchart:edit')}]];
+        var removeFlag = [[${@permission.hasPermi('system:countchart:remove')}]];
+        var prefix = ctx + "system/countchart";
+		var roleprefix = ctx + "system/role";
+
+        $(function() {
+            var options = {
+                url: prefix + "/list",
+                createUrl: prefix + "/add",
+                updateUrl: prefix + "/edit/{id}",
+                removeUrl: prefix + "/remove",
+                exportUrl: prefix + "/export",
+                modalName: "角色人员统计",
+                columns: [{
+                    checkbox: true
+                },
+                {
+                    field: 'roleId', 
+                    title: '角色',
+                    formatter: function(value, row, index) {
+                    	var roleName = getRoleNameById([[${roles}]], value);
+                        return roleName==null||roleName==''?'无':roleName;
+                    }
+                },
+                {
+                    field: 'counts', 
+                    title: '人数'
+                }]
+            };
+            $.table.init(options);
+        });
+        /* 角色管理-分配用户 */
+		function authUser(roleId) {
+		    var url = roleprefix + '/authUser/' + roleId;
+		    $.modal.openTab("分配用户", url);
+		}
+    </script>
+</body>
+</html>

@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.project.system.point.mapper.TQuestionPointMapper">
+    
+    <resultMap type="TQuestionPoint" id="TQuestionPointResult">
+        <result property="questionPointId"    column="question_point_id"    />
+        <result property="questionPointName"    column="question_point_name"    />
+        <result property="questionPointRemark"    column="question_point_remark"    />
+        <result property="questionPointParentId"    column="question_point_parent_id"    />
+        <result property="parentName" column="parent_name" />
+    </resultMap>
+
+    <sql id="selectTQuestionPointVo">
+        select question_point_id, question_point_name, question_point_remark, question_point_parent_id from t_question_point
+    </sql>
+
+    <select id="selectTQuestionPointList" parameterType="TQuestionPoint" resultMap="TQuestionPointResult">
+        <include refid="selectTQuestionPointVo"/>
+        <where>  
+            <if test="questionPointName != null  and questionPointName != ''"> and question_point_name like concat('%', #{questionPointName}, '%')</if>
+            <if test="questionPointRemark != null  and questionPointRemark != ''"> and question_point_remark = #{questionPointRemark}</if>
+            <if test="questionPointParentId != null "> and question_point_parent_id = #{questionPointParentId}</if>
+        </where>
+        order by question_point_parent_id
+    </select>
+    
+    <select id="selectTQuestionPointById" parameterType="Long" resultMap="TQuestionPointResult">
+        select t.question_point_id, t.question_point_name, t.question_point_remark, t.question_point_parent_id, p.question_point_name as parent_name
+        from t_question_point t
+        left join t_question_point p on p.question_point_id = t.question_point_parent_id
+        where t.question_point_id = #{questionPointId}
+    </select>
+        
+    <insert id="insertTQuestionPoint" parameterType="TQuestionPoint" useGeneratedKeys="true" keyProperty="questionPointId">
+        insert into t_question_point
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="questionPointName != null  and questionPointName != ''">question_point_name,</if>
+            <if test="questionPointRemark != null  and questionPointRemark != ''">question_point_remark,</if>
+            <if test="questionPointParentId != null ">question_point_parent_id,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="questionPointName != null  and questionPointName != ''">#{questionPointName},</if>
+            <if test="questionPointRemark != null  and questionPointRemark != ''">#{questionPointRemark},</if>
+            <if test="questionPointParentId != null ">#{questionPointParentId},</if>
+         </trim>
+    </insert>
+
+    <update id="updateTQuestionPoint" parameterType="TQuestionPoint">
+        update t_question_point
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="questionPointName != null  and questionPointName != ''">question_point_name = #{questionPointName},</if>
+            <if test="questionPointRemark != null  and questionPointRemark != ''">question_point_remark = #{questionPointRemark},</if>
+            <if test="questionPointParentId != null ">question_point_parent_id = #{questionPointParentId},</if>
+        </trim>
+        where question_point_id = #{questionPointId}
+    </update>
+
+    <delete id="deleteTQuestionPointById" parameterType="Long">
+        delete from t_question_point where question_point_id = #{questionPointId}
+    </delete>
+
+    <delete id="deleteTQuestionPointByIds" parameterType="String">
+        delete from t_question_point where question_point_id in 
+        <foreach item="questionPointId" collection="array" open="(" separator="," close=")">
+            #{questionPointId}
+        </foreach>
+    </delete>
+    
+</mapper>

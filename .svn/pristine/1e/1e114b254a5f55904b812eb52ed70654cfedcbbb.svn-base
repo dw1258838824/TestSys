@@ -1,0 +1,61 @@
+package com.ruoyi.project.system.question.service;
+
+import java.util.List;
+import com.ruoyi.project.system.question.domain.TQuestion;
+
+/**
+ * 题目管理Service接口
+ * 
+ * @author ruoyi
+ * @date 2020-05-27
+ */
+public interface ITQuestionService 
+{
+    /**
+     * 查询题目管理
+     * 
+     * @param questionId 题目管理ID
+     * @return 题目管理
+     */
+    public TQuestion selectTQuestionById(Long questionId);
+
+    /**
+     * 查询题目管理列表
+     * 
+     * @param tQuestion 题目管理
+     * @return 题目管理集合
+     */
+    public List<TQuestion> selectTQuestionList(TQuestion tQuestion);
+
+    /**
+     * 新增题目管理
+     * 
+     * @param tQuestion 题目管理
+     * @return 结果
+     */
+    public int insertTQuestion(TQuestion tQuestion);
+
+    /**
+     * 修改题目管理
+     * 
+     * @param tQuestion 题目管理
+     * @return 结果
+     */
+    public int updateTQuestion(TQuestion tQuestion);
+
+    /**
+     * 批量删除题目管理
+     * 
+     * @param ids 需要删除的数据ID
+     * @return 结果
+     */
+    public int deleteTQuestionByIds(String ids);
+
+    /**
+     * 删除题目管理信息
+     * 
+     * @param questionId 题目管理ID
+     * @return 结果
+     */
+    public int deleteTQuestionById(Long questionId);
+}

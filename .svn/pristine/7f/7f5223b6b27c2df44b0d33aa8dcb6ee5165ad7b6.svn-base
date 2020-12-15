@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.project.system.type.mapper.TQuestionTypeMapper">
+    
+    <resultMap type="TQuestionType" id="TQuestionTypeResult">
+        <result property="questionTypeId"    column="question_type_id"    />
+        <result property="questionTypeName"    column="question_type_name"    />
+        <result property="questionTypeHtml"    column="question_type_html"    />
+        <result property="defaultCount"    column="default_count"    />
+        <result property="defaultScore"    column="default_score"    />
+    </resultMap>
+
+    <sql id="selectTQuestionTypeVo">
+        select question_type_id, question_type_name, question_type_html,default_count,default_score from t_question_type
+    </sql>
+
+    <select id="selectTQuestionTypeList" parameterType="TQuestionType" resultMap="TQuestionTypeResult">
+        <include refid="selectTQuestionTypeVo"/>
+        <where>  
+        </where>
+    </select>
+    
+    <select id="selectTQuestionTypeById" parameterType="Integer" resultMap="TQuestionTypeResult">
+        <include refid="selectTQuestionTypeVo"/>
+        where question_type_id = #{questionTypeId}
+    </select>
+        
+    <insert id="insertTQuestionType" parameterType="TQuestionType" useGeneratedKeys="true" keyProperty="questionTypeId">
+        insert into t_question_type
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="questionTypeName != null  and questionTypeName != ''">question_type_name,</if>
+            <if test="questionTypeHtml != null  and questionTypeHtml != ''">question_type_html,</if>
+            <if test="defaultCount != null  and defaultCount != ''">default_count,</if>
+            <if test="defaultScore != null  and defaultScore != ''">default_score,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="questionTypeName != null  and questionTypeName != ''">#{questionTypeName},</if>
+            <if test="questionTypeHtml != null  and questionTypeHtml != ''">#{questionTypeHtml},</if>
+            <if test="defaultCount != null  and defaultCount != ''">#{defaultCount},</if>
+            <if test="defaultScore != null  and defaultScore != ''">#{defaultScore},</if>
+         </trim>
+    </insert>
+
+    <update id="updateTQuestionType" parameterType="TQuestionType">
+        update t_question_type
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="questionTypeName != null  and questionTypeName != ''">question_type_name = #{questionTypeName},</if>
+            <if test="questionTypeHtml != null  and questionTypeHtml != ''">question_type_html = #{questionTypeHtml},</if>
+            <if test="defaultCount != null  and defaultCount != ''">default_count = #{defaultCount},</if>
+            <if test="defaultScore != null  and defaultScore != ''">default_score = #{defaultScore},</if>
+        </trim>
+        where question_type_id = #{questionTypeId}
+    </update>
+
+    <delete id="deleteTQuestionTypeById" parameterType="Integer">
+        delete from t_question_type where question_type_id = #{questionTypeId}
+    </delete>
+
+    <delete id="deleteTQuestionTypeByIds" parameterType="String">
+        delete from t_question_type where question_type_id in 
+        <foreach item="questionTypeId" collection="array" open="(" separator="," close=")">
+            #{questionTypeId}
+        </foreach>
+    </delete>
+    
+</mapper>

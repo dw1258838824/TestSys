@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.project.system.paper.mapper.TPaperMapper">
+    
+    <resultMap type="TPaper" id="TPaperResult">
+        <result property="paperId"    column="paper_id"    />
+        <result property="paperName"    column="paper_name"    />
+        <result property="paperType"    column="paper_type"    />
+        <result property="level"    column="level"    />
+        <result property="paperDoc"    column="paper_doc"    />
+        <result property="subjectId"    column="subject_id"    />
+        <result property="allScore"    column="all_score"    />
+        <result property="passScore"    column="pass_score"    />
+        <result property="examAnswerJson"    column="exam_answer_json"    />
+        <result property="modularTimeJson"    column="modular_time_json"    />
+        <result property="isDelete"    column="is_delete"    />
+        <result property="ctime"    column="ctime"    />
+        <result property="creator"    column="creator"    />
+        
+        
+        <result property="levelName"    column="level_name"    />
+        <result property="subjectName"    column="subject_name"    />
+    </resultMap>
+
+    <sql id="selectTPaperVo">
+        SELECT
+			paper_id,
+			paper_name,
+			paper_type,
+			q.LEVEL,
+			paper_doc,
+			q.subject_id,
+			all_score,
+			pass_score,
+			exam_answer_json,
+			modular_time_json,
+			is_delete,
+			ctime,
+			creator,
+			l.level_name,
+			s.subject_name
+		FROM
+			t_paper q
+		LEFT JOIN t_level l on l.level_id = q.LEVEL
+		LEFT JOIN t_subject s on s.subject_id = q.subject_id
+    </sql>
+
+    <select id="selectTPaperList" parameterType="TPaper" resultMap="TPaperResult">
+        <include refid="selectTPaperVo"/>
+        <where>  
+            <if test="paperName != null  and paperName != ''"> and paper_name like concat('%', #{paperName}, '%')</if>
+            <if test="paperType != null  and paperType != ''"> and paper_type = #{paperType}</if>
+            <if test="level != null "> and q.level = #{level}</if>
+            <if test="subjectId != null "> and q.subject_id = #{subjectId}</if>
+            <if test="params.beginCtime != null and params.beginCtime != '' "> and ctime >= #{params.beginCtime}</if>
+            <if test="params.endCtime != null and params.endCtime != '' "> and ctime <![CDATA[ <= ]]>  CONCAT(#{params.endCtime},' 23:59:59')</if>
+            <if test="creator != null  and creator != ''"> and creator = #{creator}</if>
+        </where>
+    </select>
+    
+    <select id="selectTPaperById" parameterType="Long" resultMap="TPaperResult">
+        <include refid="selectTPaperVo"/>
+        where paper_id = #{paperId}
+    </select>
+        
+    <insert id="insertTPaper" parameterType="TPaper" useGeneratedKeys="true" keyProperty="paperId">
+        insert into t_paper
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="paperName != null  and paperName != ''">paper_name,</if>
+            <if test="paperType != null  and paperType != ''">paper_type,</if>
+            <if test="level != null ">level,</if>
+            <if test="paperDoc != null  and paperDoc != ''">paper_doc,</if>
+            <if test="subjectId != null ">subject_id,</if>
+            <if test="allScore != null ">all_score,</if>
+            <if test="passScore != null ">pass_score,</if>
+            <if test="examAnswerJson != null  and examAnswerJson != ''">exam_answer_json,</if>
+            <if test="modularTimeJson != null  and modularTimeJson != ''">modular_time_json,</if>
+            <if test="isDelete != null  and isDelete != ''">is_delete,</if>
+            <if test="ctime != null ">ctime,</if>
+            <if test="creator != null  and creator != ''">creator,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="paperName != null  and paperName != ''">#{paperName},</if>
+            <if test="paperType != null  and paperType != ''">#{paperType},</if>
+            <if test="level != null ">#{level},</if>
+            <if test="paperDoc != null  and paperDoc != ''">#{paperDoc},</if>
+            <if test="subjectId != null ">#{subjectId},</if>
+            <if test="allScore != null ">#{allScore},</if>
+            <if test="passScore != null ">#{passScore},</if>
+            <if test="examAnswerJson != null  and examAnswerJson != ''">#{examAnswerJson},</if>
+            <if test="modularTimeJson != null  and modularTimeJson != ''">#{modularTimeJson},</if>
+            <if test="isDelete != null  and isDelete != ''">#{isDelete},</if>
+            <if test="ctime != null ">#{ctime},</if>
+            <if test="creator != null  and creator != ''">#{creator},</if>
+         </trim>
+    </insert>
+
+    <update id="updateTPaper" parameterType="TPaper">
+        update t_paper
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="paperName != null  and paperName != ''">paper_name = #{paperName},</if>
+            <if test="paperType != null  and paperType != ''">paper_type = #{paperType},</if>
+            <if test="level != null ">level = #{level},</if>
+            <if test="paperDoc != null  and paperDoc != ''">paper_doc = #{paperDoc},</if>
+            <if test="subjectId != null ">subject_id = #{subjectId},</if>
+            <if test="allScore != null ">all_score = #{allScore},</if>
+            <if test="passScore != null ">pass_score = #{passScore},</if>
+            <if test="examAnswerJson != null  and examAnswerJson != ''">exam_answer_json = #{examAnswerJson},</if>
+            <if test="modularTimeJson != null  and modularTimeJson != ''">modular_time_json = #{modularTimeJson},</if>
+            <if test="isDelete != null  and isDelete != ''">is_delete = #{isDelete},</if>
+            <if test="ctime != null ">ctime = #{ctime},</if>
+            <if test="creator != null  and creator != ''">creator = #{creator},</if>
+        </trim>
+        where paper_id = #{paperId}
+    </update>
+
+    <delete id="deleteTPaperById" parameterType="Long">
+        delete from t_paper where paper_id = #{paperId} and paper_id not in (select paper_id from t_exam);
+        delete from t_paper_question where paper_id = #{paperId} and paper_id not in (select paper_id from t_exam);
+    </delete>
+
+    <delete id="deleteTPaperByIds" parameterType="String">
+        delete from t_paper where paper_id in 
+        <foreach item="paperId" collection="array" open="(" separator="," close=")">
+            #{paperId}
+        </foreach>
+        and paper_id not in (select paper_id from t_exam);
+        delete from t_paper_question where paper_id in 
+        <foreach item="paperId" collection="array" open="(" separator="," close=")">
+            #{paperId}
+        </foreach>
+        and paper_id not in (select paper_id from t_exam);
+    </delete>
+    
+    <insert id="insertPaperQuestion">
+    	INSERT INTO t_paper_question values
+    	<foreach collection="questionList" index="idx" item="question"  separator=",">
+    		(#{paperId},#{question.questionId},#{idx}+1,
+    			<foreach collection="typeList" index="index2" item="type"  separator="">
+    				<if test="type.questionTypeId == question.questionTypeId ">
+    					#{type.defaultScore}
+    				</if>
+    			</foreach>
+    		)
+		</foreach>
+    </insert>
+</mapper>

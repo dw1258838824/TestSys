@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org" xmlns:shiro="http://www.pollix.at/thymeleaf/shiro">
+<head>
+    <th:block th:include="include :: header('考试人脸验证')" />
+</head>
+<body class="gray-bg">
+
+	<p class="title">人脸识别中</p>
+
+	<div class="video_canvas">
+		<video id="video" width="500" height="500"></video>
+		<img class="video" id="img" src="">
+		<canvas id="canvas" width="500" height="500" hidden></canvas>
+	</div>
+	<div class="confirm">
+		<a id="snap" class="btn btn-primary btn-rounded .btn-lg"><i class="fa fa-camera"></i>&nbsp;&nbsp;&nbsp;点&nbsp;击&nbsp;验&nbsp;证</a>
+	</div>
+    
+    <th:block th:include="include :: footer" />
+    <script th:inline="javascript">
+    	var prefix = ctx + "student/faceauth";
+    	var examId = [[${examId}]];
+    	var error = [[${error}]];
+    	
+    	$(function() {
+    		//检查是否有异常信息
+    		if(!error){
+            	$.modal.msgError("人脸校验失败");
+        	}
+    		
+    		//用来匹配不同的浏览器
+    		function getUserMedia(constraints,success,error){
+    			if(navigator.mediaDevices.getUserMedia){
+    				navigator.mediaDevices.getUserMedia(constraints).then(success).catch(error);
+    			}else if (navigator.webkitGetUserMedia) {
+    				navigator.webkitGetUserMedia(constraints,success,error);
+    			}else if (navigator.mozGetUserMedia) {
+    				navigator.mozGetUserMedia(constraints,success,error);
+    			}else if (navigator.getUserMedia) {
+    				navigator.getUserMedia(constraints,success,error)
+    			}
+    		}
+    		
+    		let video = document.getElementById('video');
+    		let canvas = document.getElementById('canvas');
+    		let context = canvas.getContext('2d');
+    		//成功回调
+    		function success(stream){
+    			video.srcObject = stream;
+    			video.play();
+    		}
+    		//失败回调
+    		function error(error) {
+				$.modal.alertError("失败：请确保您的相机没有被其他应用程序使用（Chrome，即任何其他浏览器）");
+    		}
+    		//开启摄像头
+    		if (navigator.mediaDevices.getUserMedia || navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia) {
+    			getUserMedia({video:{width:500,height:500}},success,error)
+    		}else {
+				$.modal.alertError("您的设备不支持");
+    		}
+    		//实现拍照的功能
+    		document.getElementById('snap').addEventListener('click',function(){
+    			context.drawImage(video,0,0,500,500);
+    			imgData = canvas.toDataURL();
+    			var photo = imgData.substr(22);
+    			$("#img").attr("src","data:image/png;base64,"+ photo);
+    			video.remove();
+    			$.modal.loading("正在校验，请稍后...");
+
+				$.post(prefix + "/set",{faceImg:photo},function(data,status){
+					if(data.code == 0){
+						//获取摄像头并关闭摄像头占用
+						var track = video.srcObject.getTracks()[0];
+						track.stop();
+						window.location.reload();
+					}else{
+						$.modal.alertError("人脸设置失败");
+						video.play();
+					}
+					$.modal.closeLoading();
+				});
+    		});
+    		
+    		
+    	});
+    	
+    </script>
+</body>
+
+<style>
+
+	.video_canvas{
+		text-align: center;
+    	margin-top: 50px;
+	}
+	
+	video,canvas,.video{
+		width: 25% !important;
+		border-radius: 200px;
+	}
+	
+	.confirm{
+		margin-top: 20px;
+		text-align: center;
+	}
+	
+	.title{
+		text-align: center;
+	    margin-top: 60px;
+	    font-size: 25px;
+	    font-weight: 600;
+	}
+	
+</style>
+
+</html>

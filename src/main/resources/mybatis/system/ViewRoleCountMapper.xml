@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.project.system.countchart.mapper.ViewRoleCountMapper">
+    
+    <resultMap type="ViewRoleCount" id="ViewRoleCountResult">
+        <result property="roleId"    column="role_id"    />
+        <result property="counts"    column="counts"    />
+    </resultMap>
+
+    <sql id="selectViewRoleCountVo">
+        select role_id, counts from view_role_count
+    </sql>
+
+    <select id="selectViewRoleCountList" parameterType="ViewRoleCount" resultMap="ViewRoleCountResult">
+        <include refid="selectViewRoleCountVo"/>
+        <where>  
+            <if test="roleId != null "> and role_id = #{roleId}</if>
+        </where>
+    </select>
+    
+    <select id="selectViewRoleCountById" parameterType="Long" resultMap="ViewRoleCountResult">
+        <include refid="selectViewRoleCountVo"/>
+        where role_id = #{roleId}
+    </select>
+        
+    <insert id="insertViewRoleCount" parameterType="ViewRoleCount">
+        insert into view_role_count
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="roleId != null ">role_id,</if>
+            <if test="counts != null ">counts,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="roleId != null ">#{roleId},</if>
+            <if test="counts != null ">#{counts},</if>
+         </trim>
+    </insert>
+
+    <update id="updateViewRoleCount" parameterType="ViewRoleCount">
+        update view_role_count
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="counts != null ">counts = #{counts},</if>
+        </trim>
+        where role_id = #{roleId}
+    </update>
+
+    <delete id="deleteViewRoleCountById" parameterType="Long">
+        delete from view_role_count where role_id = #{roleId}
+    </delete>
+
+    <delete id="deleteViewRoleCountByIds" parameterType="String">
+        delete from view_role_count where role_id in 
+        <foreach item="roleId" collection="array" open="(" separator="," close=")">
+            #{roleId}
+        </foreach>
+    </delete>
+    
+</mapper>

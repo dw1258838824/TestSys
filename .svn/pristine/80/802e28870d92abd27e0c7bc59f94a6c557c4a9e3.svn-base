@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.project.system.exam.mapper.TExamMapper">
+    
+    <resultMap type="TExam" id="TExamResult">
+        <result property="examId"    column="exam_id"    />
+        <result property="examTitle"    column="exam_title"    />
+        <result property="levelId"    column="level_id"    />
+        <result property="examMode"    column="exam_mode"    />
+        <result property="subjectId"    column="subject_id"    />
+        <result property="examClaim"    column="exam_claim"    />
+        <result property="beginTime"    column="begin_time"    />
+        <result property="endTime"    column="end_time"    />
+        <result property="rignBeginTime"    column="rign_begin_time"    />
+        <result property="rignEndTime"    column="rign_end_time"    />
+        <result property="paperId"    column="paper_id"    />
+        <result property="state"    column="state"    />
+        <result property="ctime"    column="ctime"    />
+        <result property="creator"    column="creator"    />
+        <result property="isDelete"    column="is_delete"    />
+    </resultMap>
+
+    <sql id="selectTExamVo">
+        select exam_id, exam_title, level_id, exam_mode, subject_id, exam_claim, begin_time, end_time, rign_begin_time, rign_end_time, paper_id, state, ctime, creator, is_delete from t_exam
+    </sql>
+
+    <select id="selectTExamList" parameterType="TExam" resultMap="TExamResult">
+        <include refid="selectTExamVo"/>
+        <where>  
+            <if test="examTitle != null  and examTitle != ''"> and exam_title like concat('%', #{examTitle}, '%')</if>
+            <if test="levelId != null "> and level_id = #{levelId}</if>
+            <if test="examMode != null  and examMode != ''"> and exam_mode = #{examMode}</if>
+            <if test="subjectId != null "> and subject_id = #{subjectId}</if>
+            <if test="beginTime != null "> and begin_time = #{beginTime}</if>
+            <if test="rignBeginTime != null "> and rign_begin_time = #{rignBeginTime}</if>
+            <if test="state != null  and state != ''"> and state = #{state}</if>
+            <if test="ctime != null "> and ctime = #{ctime}</if>
+            <if test="creator != null  and creator != ''"> and creator = #{creator}</if>
+            <if test="isDelete != null  and isDelete != ''"> and is_delete = #{isDelete}</if>
+        </where>
+    </select>
+    
+    <select id="selectTExamById" parameterType="Long" resultMap="TExamResult">
+        <include refid="selectTExamVo"/>
+        where exam_id = #{examId}
+    </select>
+        
+    <insert id="insertTExam" parameterType="TExam" useGeneratedKeys="true" keyProperty="examId">
+        insert into t_exam
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="examTitle != null  and examTitle != ''">exam_title,</if>
+            <if test="levelId != null ">level_id,</if>
+            <if test="examMode != null  and examMode != ''">exam_mode,</if>
+            <if test="subjectId != null ">subject_id,</if>
+            <if test="examClaim != null  and examClaim != ''">exam_claim,</if>
+            <if test="beginTime != null ">begin_time,</if>
+            <if test="endTime != null ">end_time,</if>
+            <if test="rignBeginTime != null ">rign_begin_time,</if>
+            <if test="rignEndTime != null ">rign_end_time,</if>
+            <if test="paperId != null ">paper_id,</if>
+            <if test="state != null  and state != ''">state,</if>
+            <if test="ctime != null ">ctime,</if>
+            <if test="creator != null  and creator != ''">creator,</if>
+            <if test="isDelete != null  and isDelete != ''">is_delete,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="examTitle != null  and examTitle != ''">#{examTitle},</if>
+            <if test="levelId != null ">#{levelId},</if>
+            <if test="examMode != null  and examMode != ''">#{examMode},</if>
+            <if test="subjectId != null ">#{subjectId},</if>
+            <if test="examClaim != null  and examClaim != ''">#{examClaim},</if>
+            <if test="beginTime != null ">#{beginTime},</if>
+            <if test="endTime != null ">#{endTime},</if>
+            <if test="rignBeginTime != null ">#{rignBeginTime},</if>
+            <if test="rignEndTime != null ">#{rignEndTime},</if>
+            <if test="paperId != null ">#{paperId},</if>
+            <if test="state != null  and state != ''">#{state},</if>
+            <if test="ctime != null ">#{ctime},</if>
+            <if test="creator != null  and creator != ''">#{creator},</if>
+            <if test="isDelete != null  and isDelete != ''">#{isDelete},</if>
+         </trim>
+    </insert>
+
+    <update id="updateTExam" parameterType="TExam">
+        update t_exam
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="examTitle != null  and examTitle != ''">exam_title = #{examTitle},</if>
+            <if test="levelId != null ">level_id = #{levelId},</if>
+            <if test="examMode != null  and examMode != ''">exam_mode = #{examMode},</if>
+            <if test="subjectId != null ">subject_id = #{subjectId},</if>
+            <if test="examClaim != null  and examClaim != ''">exam_claim = #{examClaim},</if>
+            <if test="beginTime != null ">begin_time = #{beginTime},</if>
+            <if test="endTime != null ">end_time = #{endTime},</if>
+            <if test="rignBeginTime != null ">rign_begin_time = #{rignBeginTime},</if>
+            <if test="rignEndTime != null ">rign_end_time = #{rignEndTime},</if>
+            <if test="paperId != null ">paper_id = #{paperId},</if>
+            <if test="state != null  and state != ''">state = #{state},</if>
+            <if test="ctime != null ">ctime = #{ctime},</if>
+            <if test="creator != null  and creator != ''">creator = #{creator},</if>
+            <if test="isDelete != null  and isDelete != ''">is_delete = #{isDelete},</if>
+        </trim>
+        where exam_id = #{examId}
+    </update>
+
+    <delete id="deleteTExamById" parameterType="Long">
+        delete from t_exam where exam_id = #{examId}
+    </delete>
+
+    <delete id="deleteTExamByIds" parameterType="String">
+        delete from t_exam where exam_id in 
+        <foreach item="examId" collection="array" open="(" separator="," close=")">
+            #{examId}
+        </foreach>
+    </delete>
+    
+</mapper>

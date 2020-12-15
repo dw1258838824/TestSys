@@ -1,0 +1,108 @@
+package com.testsys.common;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import com.alibaba.fastjson.JSON;
+import com.testsys.utils.HttpUtil;
+
+/**
+ * 人脸识别认证（by：百度aip）
+ * 
+ * @author TestSys
+ *
+ */
+public class FaceRecognitionAuth {
+
+	// 应用APP_ID
+	public static final String APP_ID = "20308087";
+	// 应用API_KEY
+	public static final String API_KEY = "u8OzevSro7akZHKoACTWNfma";
+	// 应用SECRET_KEY
+	public static final String SECRET_KEY = "eH7LtBg24RFcanreo6IwpdlDXqp80sqN";
+
+	/**
+	 * 
+	 * @param groupId     	用户组ID
+	 * @param userId      	用户id
+	 * @param imageBase64	用户人脸照片
+	 * @param remark		用户描述
+	 * @return
+	 */
+	public static String faceSet(String groupId, String userId, String imageBase64, String remark) {
+		// 请求url
+		String url = "https://aip.baidubce.com/rest/2.0/face/v3/faceset/user/add";
+		try {
+			Map<String, Object> map = new HashMap<>();
+			map.put("image", imageBase64);
+			map.put("image_type", "BASE64");
+			map.put("group_id", groupId);
+			map.put("user_id", userId);
+			map.put("user_info", remark);
+			// map.put("liveness_control", "NORMAL"); 	// 活体检测控制
+			// map.put("quality_control", "LOW"); 		// 图片质量控制
+
+			// String param = GsonUtils.toJson(map);
+			String param = JSON.toJSON(map).toString();
+
+			// 注意这里仅为了简化编码每一次请求都去获取access_token，线上环境access_token有过期时间， 客户端可自行缓存，过期后重新获取。
+			String accessToken = "24.870360e81e463effe78865a887d4bd8b.2592000.1594365685.282335-20308087";
+
+			String result = HttpUtil.post(url, accessToken, "application/json", param);
+			System.out.println(result);
+			return result;
+		} catch (Exception e) {
+			e.printStackTrace();
+			return null;
+		}		
+	}
+
+	/**
+	 * 获取用户人脸列表
+	 * 
+	 * @return
+	 */
+	public static String getFaceList() {
+		// 请求url
+		String url = "https://aip.baidubce.com/rest/2.0/face/v3/faceset/face/getlist";
+		try {
+			Map<String, Object> map = new HashMap<>();
+			map.put("user_id", "user1");
+			map.put("group_id", "group1");
+
+			// String param = GsonUtils.toJson(map);
+			String param = JSON.toJSON(map).toString();
+
+			String accessToken = "24.870360e81e463effe78865a887d4bd8b.2592000.1594365685.282335-20308087";
+
+			String result = HttpUtil.post(url, accessToken, "application/json", param);
+			System.out.println(result);
+			return result;
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	/**
+	 * 人脸比对
+	 */
+	public static String faceMatch() {
+		// 请求url
+		String url = "https://aip.baidubce.com/rest/2.0/face/v3/match";
+		try {
+			Map<String, Object> map = new HashMap<>();
+			// String param = GsonUtils.toJson(map);
+			String param = JSON.toJSON(map).toString();
+			// 注意这里仅为了简化编码每一次请求都去获取access_token，线上环境access_token有过期时间， 客户端可自行缓存，过期后重新获取。
+			String accessToken = "24.870360e81e463effe78865a887d4bd8b.2592000.1594365685.282335-20308087";
+
+			String result = HttpUtil.post(url, accessToken, "application/json", param);
+			System.out.println(result);
+			return result;
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+}

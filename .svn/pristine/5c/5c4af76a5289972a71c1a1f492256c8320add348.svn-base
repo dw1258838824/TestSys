@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org" xmlns:shiro="http://www.pollix.at/thymeleaf/shiro">
+<head>
+    <th:block th:include="include :: header('机构批量报名列表')" />
+</head>
+<body class="gray-bg">
+     <div class="container-div">
+        <div class="row">
+            <div class="col-sm-12 search-collapse">
+                <form id="formId">
+                    <div class="select-list">
+                        <ul>
+                            <li>
+                                <label>对应考试：</label>
+                                <input id="examTitle" name="examTitle" class="form-control" type="text" required readOnly onclick="selectExam()">
+                    			<input id="examId" name="examId" class="form-control" type="hidden" required>
+                            </li>
+                            <li>
+                                <label>报名学生：</label>
+                                <input type="text" name="params[studentName]"/>
+                            </li>
+                            <li>
+                                <label>申请人：</label>
+                                <input type="text" name="params[operateUserName]"/>
+                            </li>
+                            <li>
+                                <label>学员机构：</label>
+                                 <div class="input-group" style="width: 200px" onclick="selectDeptTree()">
+                                    <input id="treeId" name="deptId" type="text" style="display:none" value="" />
+                                    <input class="form-control" type="text" id="treeName" readonly="true">
+                                    <span class="input-group-addon"><i class="fa fa-search"></i></span>
+                                </div>
+                            </li>
+                            <li class="select-time">
+                                <label>申请时间：</label>
+                                <input type="text" class="time-input" id="startTime" placeholder="开始时间" name="params[beginOperateTime]"/>
+                                <span>-</span>
+                                <input type="text" class="time-input" id="endTime" placeholder="结束时间" name="params[endOperateTime]"/>
+                            </li>
+                            <li>
+                                <label>申请状态：</label>
+                                <select name="operateState" th:with="type=${@dict.getType('sys_operate_state')}">
+                                    <option value="">所有</option>
+                                    <option th:each="dict : ${type}" th:text="${dict.dictLabel}" th:value="${dict.dictValue}"></option>
+                                </select>
+                            </li>
+                            <li>
+                                <label>审核人：</label>
+                                <input type="text" name="params[replayUserName]"/>
+                            </li>
+                            <li>
+                                <a class="btn btn-primary btn-rounded btn-sm" onclick="$.table.search();initCheckBox()"><i class="fa fa-search"></i>&nbsp;搜索</a>
+                                <a class="btn btn-warning btn-rounded btn-sm" onclick="$.form.reset();initCheckBox()"><i class="fa fa-refresh"></i>&nbsp;重置</a>
+                            </li>
+                        </ul>
+                    </div>
+                </form>
+            </div>
+
+            <div class="btn-group-sm" id="toolbar" role="group">
+                <a class="btn btn-success" onclick="$.operate.addTab()" shiro:hasPermission="system:reg:add">
+                    <i class="fa fa-plus"></i> 添加
+                </a>
+                <a class="btn btn-primary multiple disabled" onclick="replayAll(1)" shiro:hasPermission="system:reg:edit">
+                    <i class="fa fa-check"></i> 审核通过
+                </a>
+                <a class="btn btn-warning multiple disabled" onclick="replayAll(2)" shiro:hasPermission="system:reg:edit">
+                    <i class="fa fa-close"></i> 拒绝审核
+                </a>
+            </div>
+            <div class="col-sm-12 select-table table-striped">
+                <table id="bootstrap-table"></table>
+            </div>
+        </div>
+    </div>
+    <th:block th:include="include :: footer" />
+    <script th:inline="javascript">
+        var editFlag = [[${@permission.hasPermi('system:reg:edit')}]];
+        var removeFlag = [[${@permission.hasPermi('system:reg:remove')}]];
+        var operateStateDatas = [[${@dict.getType('sys_operate_state')}]];
+        var prefix = ctx + "system/reg";
+
+        function selectExam(){
+			$.modal.open("选择考试", ctx + "system/exam");//报名截止前的考试
+		}
+     	//取消申请
+        function cancel(id) {
+        	table.set();
+        	$.modal.confirm("确定取消该条报名申请吗？", function() {
+                var url = $.common.isEmpty(id) ? table.options.removeUrl : table.options.removeUrl.replace("{id}", id);
+                if(table.options.type == table_type.bootstrapTreeTable) {
+                	$.operate.get(url);
+                } else {
+            	    var data = { "ids": id };
+            	    $.operate.submit(url, "post", "json", data);
+                }
+        	});
+        }
+        // 批量审核
+        function replayAll(state) {
+        	table.set();
+    		var rows = $.common.isEmpty(table.options.uniqueId) ? $.table.selectFirstColumns() : $.table.selectColumns(table.options.uniqueId);
+    		if (rows.length == 0) {
+    			$.modal.alertWarning("请至少选择一条记录");
+    			return;
+    		}
+    		var str = "审核";
+    		if(state == 2)
+    			str = "拒绝";
+    		
+    		$.modal.confirm("确认要"+str+"选中的" + rows.length + "条数据吗?", function() {
+    			var data = { params:{ids:rows.join()} ,operateState:state};
+    			$.operate.save(prefix + "/edit", data);
+    		});
+        }
+        var prefixDept = ctx + "system/dept";
+        /*部门管理-新增-选择父部门树*/
+        function selectDeptTree() {
+            var deptId = $("#treeId").val();
+            if(deptId == ""){
+                deptId = 100;
+            }
+            var options = {
+                title: '机构选择',
+                width: "380",
+                url: prefixDept + "/selectDeptTree/" + deptId,
+                callBack: doSubmit
+            };
+            $.modal.openOptions(options);
+        }
+        function doSubmit(index, layero){
+            var body = layer.getChildFrame('body', index);
+            $("#treeId").val(body.find('#treeId').val());
+            $("#treeName").val(body.find('#treeName').val());
+            layer.close(index);
+        }
+        $(function() {
+            var options = {
+                url: prefix + "/list",
+                createUrl: prefix + "/add",
+                updateUrl: prefix + "/edit/{id}",
+                removeUrl: prefix + "/remove",
+                exportUrl: prefix + "/export",
+                modalName: "机构批量报名",
+                showRefresh: false,
+                showColumns: false,
+                showToggle: false,
+                columns: [{
+                    checkbox: true,
+                    formatter: function(value, row, index) {
+                    	if(row.operateState != 0){
+	                        return "<span class='hide hideCheckbox' ></span>";
+                    	}
+                    }
+                },
+                {
+                    field: 'deptRegId', 
+                    title: '机构报名编号',
+                    visible: false
+                },
+                {
+                    field: 'params.examTitle', 
+                    title: '对应考试'
+                },
+                {
+                    field: 'params.argueEndTime', 
+                    title: '报名截止时间'
+                },
+                {
+                    field: 'params.studentName', 
+                    title: '报名学生'
+                },
+                {
+                    field: 'params.deptName', 
+                    title: '学员机构'
+                },
+                {
+                    field: 'params.operateUserName', 
+                    title: '申请人'
+                },
+                {
+                    field: 'operateTime', 
+                    title: '申请时间'
+                },
+                {
+                    field: 'operateMark', 
+                    title: '申请备注'
+                },
+                {
+                    field: 'operateState', 
+                    title: '申请状态',
+                    formatter: function(value, row, index) {
+                       return $.table.selectDictLabel(operateStateDatas, value);
+                    }
+                },
+                {
+                    field: 'params.replayUserName', 
+                    title: '审核人'
+                },
+                {
+                    field: 'replayTime', 
+                    title: '审核时间'
+                },
+                {
+                    title: '操作',
+                    align: 'center',
+                    formatter: function(value, row, index) {
+                        var actions = [];
+                        if(row.operateState == 0){
+	                        actions.push('<a class="btn btn-danger btn-xs ' + removeFlag + '" href="javascript:void(0)" onclick="cancel(\'' + row.deptRegId + '\')"><i class="fa fa-remove"></i>取消申请</a>');
+                        }
+                        return actions.join('');
+                    }
+                }]
+            };
+            $.table.init(options);
+            initCheckBox();
+        });
+        function initCheckBox(){
+            setTimeout(function(){
+            	$(".hideCheckbox").each(function(){
+            		$(this).prev().attr("disabled",true);
+            	})
+            },100);
+        }
+    </script>
+</body>
+</html>

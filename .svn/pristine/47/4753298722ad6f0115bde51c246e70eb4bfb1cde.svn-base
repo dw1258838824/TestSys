@@ -1,0 +1,47 @@
+package com.ruoyi.project.system.api.controller;
+
+import java.util.Map;
+import javax.servlet.http.HttpServletRequest;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+import com.google.common.collect.Maps;
+import com.ruoyi.common.utils.HttpUtils;
+import com.ruoyi.common.utils.PythonUtils;
+import com.ruoyi.project.system.config.mapper.ConfigMapper;
+import io.swagger.annotations.Api;
+
+@Api
+@Controller
+@RequestMapping("/api/python")
+public class PythonApi {
+	
+	@Autowired
+	private ConfigMapper configMapper;
+
+	
+	@PostMapping("/run")
+	@ResponseBody
+	public String compile(HttpServletRequest request){
+		Map<String, String> parm = Maps.newHashMap();
+		parm.put("code",request.getParameter("code"));
+		parm.put("token",configMapper.checkConfigKeyUnique("python_api_token").getConfigValue()); //"4381fe197827ec87cbac9552f14ec62a"
+		parm.put("language","0");
+		parm.put("fileext","py");
+		parm.put("stdin","");
+		String result = "";
+		try {
+			result = HttpUtils.URLPost(configMapper.checkConfigKeyUnique("python_api_url").getConfigValue(), parm, "UTF-8"); //"https://tool.runoob.com/compile2.php"
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return result;
+	}
+	
+	public static void main(String[] args) {
+		String result = PythonUtils.pythonRun("print 'Hello Worldd!'");
+		System.out.println("结果：" + result);
+	}
+}

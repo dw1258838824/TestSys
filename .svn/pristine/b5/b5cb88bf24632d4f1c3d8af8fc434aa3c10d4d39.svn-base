@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org" >
+<head>
+    <th:block th:include="include :: header('修改报名管理')" />
+</head>
+<body class="white-bg">
+    <div class="wrapper wrapper-content animated fadeInRight ibox-content">
+        <form class="form-horizontal m" id="form-register-edit" th:object="${tExamRegister}">
+            <input name="examRegisterId" th:field="*{examRegisterId}" type="hidden">
+            <div class="form-group">    
+                <label class="col-sm-3 control-label is-required">学员：</label>
+                <div class="col-sm-8">
+                    <input name="studentId" th:field="*{studentId}" class="form-control" type="text" required>
+                </div>
+            </div>
+            <div class="form-group">    
+                <label class="col-sm-3 control-label is-required">对应考试：</label>
+                <div class="col-sm-8">
+                    <input name="examId" th:field="*{examId}" class="form-control" type="text" required>
+                </div>
+            </div>
+            <div class="form-group">    
+                <label class="col-sm-3 control-label">准考状态：</label>
+                <div class="col-sm-8">
+                    <select name="state" class="form-control m-b" th:with="type=${@dict.getType('sys_register_state')}" required>
+                        <option th:each="dict : ${type}" th:text="${dict.dictLabel}" th:value="${dict.dictValue}" th:field="*{state}"></option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group">    
+                <label class="col-sm-3 control-label">准考证号：</label>
+                <div class="col-sm-8">
+                    <input name="examCode" th:field="*{examCode}" class="form-control" type="text">
+                </div>
+            </div>
+        </form>
+    </div>
+    <th:block th:include="include :: footer" />
+    <script type="text/javascript">
+        var prefix = ctx + "system/register";
+        $("#form-register-edit").validate({
+            focusCleanup: true
+        });
+
+        function submitHandler() {
+            if ($.validate.form()) {
+                $.operate.save(prefix + "/edit", $('#form-register-edit').serialize());
+            }
+        }
+    </script>
+</body>
+</html>
